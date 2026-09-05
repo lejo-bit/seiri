@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+instance/
+*.db
+# Baza danych SQLite
+instance/seiri.db
+.DS_Store

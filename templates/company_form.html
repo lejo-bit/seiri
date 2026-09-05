@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% set is_edit = company is not none and company.id is not none %}
+{% set recruitment_options = {'looking': 'sucht', 'not_looking': 'sucht nicht', 'unknown': 'unbekannt'} %}
+{% set current_recruitment = (company.recruitment if company and company.recruitment) or 'unknown' %}
+
+{% block title %}{{ 'Firma bearbeiten' if is_edit else 'Firma hinzufügen' }} – SEIRI{% endblock %}
+
+{% block content %}
+<div class="columns is-centered">
+  <div class="column is-half">
+    <div class="box">
+      <h1 class="title is-4">{{ 'Firma bearbeiten' if is_edit else 'Firma hinzufügen' }}</h1>
+
+      {% if not statuses %}
+        <div class="notification is-info">
+          Du hast noch keine Status — der Status ist optional. Du kannst ihn später
+          auf der Firmenseite („Status ändern“) vergeben oder unter
+          <a href="{{ url_for('statuses') }}">Status verwalten</a> anlegen.
+        </div>
+      {% endif %}
+
+      <form method="post">
+        <div class="field">
+          <label class="label" for="name">Name des Unternehmens *</label>
+          <div class="control">
+            <input class="input" id="name" name="name" type="text"
+                   value="{{ (company.name if company else '') }}"
+                   placeholder="z. B. Muster GmbH" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="status_id">Status (optional)</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="status_id" name="status_id">
+                <option value=""
+                        {{ 'selected' if not (company and company.status_id) }}>
+                  — kein Status —
+                </option>
+                {% for status in statuses %}
+                  <option value="{{ status.id }}"
+                          {{ 'selected' if company and company.status_id == status.id }}>
+                    {{ status.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="recruitment">Sucht das Unternehmen jemanden für ein Praktikum?</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="recruitment" name="recruitment">
+                {% for key, label in recruitment_options.items() %}
+                  <option value="{{ key }}"
+                          {{ 'selected' if current_recruitment == key }}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="address">Adresse</label>
+          <div class="control">
+            <input class="input" id="address" name="address" type="text"
+                   value="{{ (company.address if company else '') }}"
+                   placeholder="z. B. Musterstraße 1">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="address2">Adresse 2</label>
+          <div class="control">
+            <input class="input" id="address2" name="address2" type="text"
+                   value="{{ (company.address2 if company else '') }}"
+                   placeholder="z. B. Etage / Hausnummer">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="city">Stadt</label>
+          <div class="control">
+            <input class="input" id="city" name="city" type="text"
+                   value="{{ (company.city if company else '') }}"
+                   placeholder="z. B. 12345 Musterstadt">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="email">E-Mail</label>
+          <div class="control">
+            <input class="input" id="email" name="email" type="email"
+                   value="{{ (company.email if company else '') }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="phone">Telefon</label>
+          <div class="control">
+            <input class="input" id="phone" name="phone" type="tel"
+                   value="{{ (company.phone if company else '') }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="website">Website</label>
+          <div class="control">
+            <input class="input" id="website" name="website" type="text"
+                   inputmode="url"
+                   value="{{ (company.website if company else '') }}"
+                   placeholder="z. B. https://www.muster.de">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="description">Beschreibung</label>
+          <div class="control">
+            <textarea class="textarea" id="description" name="description"
+                      placeholder="Kurze Beschreibung des Unternehmens / Praktikums">{{ (company.description if company else '') }}</textarea>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="cover_letter">Anschreiben</label>
+          <div class="control">
+            <textarea class="textarea" id="cover_letter" name="cover_letter"
+                      rows="8"
+                      placeholder="Füge hier den Text des Anschreibens ein, das an dieses Unternehmen gesendet wurde.">{{ (company.cover_letter if company else '') }}</textarea>
+          </div>
+        </div>
+
+        <div class="field is-grouped mt-4">
+          <div class="control">
+            <button class="button is-primary" type="submit">
+              {{ 'Änderungen speichern' if is_edit else 'Firma hinzufügen' }}
+            </button>
+          </div>
+          <div class="control">
+            <a class="button is-light"
+               href="{{ url_for('company_detail', company_id=company.id) if is_edit else url_for('index') }}">
+              Abbrechen
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

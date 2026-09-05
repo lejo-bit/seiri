@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Status – SEIRI{% endblock %}
+
+{% block content %}
+<h1 class="title">Statusverwaltung</h1>
+<p class="subtitle">Status anlegen und löschen, die den Firmen zugeordnet werden.</p>
+
+<div class="columns mt-4">
+  <div class="column is-one-third">
+    <div class="box">
+      <h2 class="title is-5">Status hinzufügen</h2>
+      <form method="post" action="{{ url_for('statuses') }}">
+        <div class="field">
+          <label class="label" for="name">Name des Status</label>
+          <div class="control">
+            <input class="input" id="name" name="name" type="text"
+                   placeholder="z. B. Bewerbung gesendet, Gespräch, angenommen…" required>
+          </div>
+        </div>
+        <button class="button is-primary" type="submit">Hinzufügen</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="column is-two-thirds">
+    <div class="box">
+      <h2 class="title is-5">Vorhandene Status</h2>
+
+      {% if statuses %}
+        <table class="table is-fullwidth is-hoverable is-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th class="has-text-centered">Anzahl Firmen</th>
+              <th class="has-text-right">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status in statuses %}
+              <tr>
+                <td>
+                  <span class="tag status-tag is-medium">{{ status.name }}</span>
+                </td>
+                <td class="has-text-centered">{{ status.companies | length }}</td>
+                <td class="has-text-right">
+                  <form method="post"
+                        action="{{ url_for('delete_status', status_id=status.id) }}"
+                        onsubmit="return confirm('Status „{{ status.name }}“ wirklich löschen?');"
+                        style="display: inline;">
+                    <button class="button is-small is-danger is-outlined" type="submit">
+                      Löschen
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="has-text-grey-lighter">
+          Noch kein Status vorhanden — füge links einen hinzu.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

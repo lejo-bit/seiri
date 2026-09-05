@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Mein Profil – SEIRI{% endblock %}
+
+{% block content %}
+<div class="columns is-centered">
+  <div class="column is-half">
+    <div class="box">
+      <h1 class="title is-4">Mein Profil</h1>
+      <p class="subtitle">Daten für Kopfbereich und Unterschrift des Anschreibens (PDF).</p>
+
+      <form method="post" action="{{ url_for('profile') }}">
+        <div class="field">
+          <label class="label" for="full_name">Name</label>
+          <div class="control">
+            <input class="input" id="full_name" name="full_name" type="text"
+                   value="{{ profile.full_name or '' }}" placeholder="z. B. Max Mustermann">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="address">Adresse</label>
+          <div class="control">
+            <input class="input" id="address" name="address" type="text"
+                   value="{{ profile.address or '' }}"
+                   placeholder="z. B. Musterstraße 1">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="city">Stadt / PLZ</label>
+          <div class="control">
+            <input class="input" id="city" name="city" type="text"
+                   value="{{ profile.city or '' }}"
+                   placeholder="z. B. 12345 Musterstadt">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="email">E-Mail</label>
+          <div class="control">
+            <input class="input" id="email" name="email" type="email"
+                   value="{{ profile.email or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="phone">Telefon</label>
+          <div class="control">
+            <input class="input" id="phone" name="phone" type="tel"
+                   value="{{ profile.phone or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="position">Position / Ausbildungsberuf</label>
+          <div class="control">
+            <input class="input" id="position" name="position" type="text"
+                   value="{{ profile.position or '' }}"
+                   placeholder="Fachinformatiker – Daten und Prozessanalyse">
+          </div>
+        </div>
+
+        <div class="field is-grouped mt-4">
+          <div class="control">
+            <button class="button is-primary" type="submit">Profil speichern</button>
+          </div>
+          <div class="control">
+            <a class="button is-light" href="{{ url_for('index') }}">Zurück zur Firmenliste</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% set recruitment_options = {'looking': 'sucht', 'not_looking': 'sucht nicht', 'unknown': 'unbekannt'} %}
+{% set current_recruitment = (company.recruitment if company.recruitment) or 'unknown' %}
+
+{% block title %}{{ company.name }} – SEIRI{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="{{ url_for('index') }}">Firmenliste</a></li>
+    <li class="is-active"><a href="#" aria-current="page">{{ company.name }}</a></li>
+  </ul>
+</nav>
+
+<h1 class="title">{{ company.name }}</h1>
+<p class="subtitle">Firmendetails</p>
+
+<div class="buttons">
+  <button class="button is-primary" type="button" id="toggleEditBtn">Daten bearbeiten</button>
+  <a class="button is-light" href="{{ url_for('index') }}">Zurück zur Liste</a>
+  <a class="button is-link" href="{{ url_for('company_pdf', company_id=company.id) }}"
+     target="_blank" rel="noopener">PDF generieren</a>
+  <a class="button is-light" href="{{ url_for('profile') }}">Mein Profil</a>
+  <a class="button is-light" href="{{ url_for('statuses') }}">Status</a>
+</div>
+
+<!-- Bearbeitungsbereich – über „Daten bearbeiten“ ein-/ausblenden -->
+<div class="box mt-4" id="editPanel" style="display: none;">
+  <h2 class="title is-5">Firmendaten bearbeiten</h2>
+  <form method="post" action="{{ url_for('edit_company', company_id=company.id) }}">
+    <div class="columns">
+      <div class="column is-half">
+        <div class="field">
+          <label class="label" for="name">Name des Unternehmens *</label>
+          <div class="control">
+            <input class="input" id="name" name="name" type="text"
+                   value="{{ company.name }}" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="recruitment">Sucht das Unternehmen jemanden für ein Praktikum?</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="recruitment" name="recruitment">
+                {% for key, label in recruitment_options.items() %}
+                  <option value="{{ key }}"
+                          {{ 'selected' if current_recruitment == key }}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="address">Adresse</label>
+          <div class="control">
+            <input class="input" id="address" name="address" type="text"
+                   value="{{ company.address or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="address2">Adresse 2</label>
+          <div class="control">
+            <input class="input" id="address2" name="address2" type="text"
+                   value="{{ company.address2 or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="city">Stadt</label>
+          <div class="control">
+            <input class="input" id="city" name="city" type="text"
+                   value="{{ company.city or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="email">E-Mail</label>
+          <div class="control">
+            <input class="input" id="email" name="email" type="email"
+                   value="{{ company.email or '' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="phone">Telefon</label>
+          <div class="control">
+            <input class="input" id="phone" name="phone" type="tel"
+                   value="{{ company.phone or '' }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-half">
+        <div class="field">
+          <label class="label" for="website">Website</label>
+          <div class="control">
+            <input class="input" id="website" name="website" type="text"
+                   inputmode="url"
+                   value="{{ company.website or '' }}"
+                   placeholder="https://www.muster.de">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="status_id">Status (optional)</label>
+          <div class="control">
+            <div class="select is-fullwidth">
+              <select id="status_id" name="status_id">
+                <option value="" {{ 'selected' if not company.status_id }}>— kein Status —</option>
+                {% for status in statuses %}
+                  <option value="{{ status.id }}"
+                          {{ 'selected' if company.status_id == status.id }}>{{ status.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="description">Beschreibung</label>
+          <div class="control">
+            <textarea class="textarea" id="description" name="description"
+                      placeholder="Kurze Beschreibung des Unternehmens">{{ company.description or '' }}</textarea>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="cover_letter">Anschreiben</label>
+          <div class="control">
+            <textarea class="textarea" id="cover_letter" name="cover_letter" rows="6"
+                      placeholder="Text des Anschreibens...">{{ company.cover_letter or '' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-grouped">
+      <div class="control">
+        <button class="button is-primary" type="submit">Änderungen speichern</button>
+      </div>
+      <div class="control">
+        <button class="button is-light" type="button" id="cancelEditBtn">Abbrechen</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<table class="table is-fullwidth is-hoverable is-striped">
+  <tbody>
+    <tr>
+      <th class="has-text-weight-semibold" style="width: 12rem;">Status</th>
+      <td>
+        {% if company.status %}
+          <span class="tag status-tag is-medium">{{ company.status.name }}</span>
+        {% else %}
+          <em class="has-text-grey-lighter">Kein Status</em>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Sucht nach Praktikanten?</th>
+      <td>
+        <span class="tag recruitment-tag is-medium {{ 'looking' if company.recruitment == 'looking' else ('no' if company.recruitment == 'not_looking' else 'unknown') }}">
+          {{ company.recruitment_label }}
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Adresse</th>
+      <td>{{ company.address or '—' }}</td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Adresse 2</th>
+      <td>{{ company.address2 or '—' }}</td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Stadt</th>
+      <td>{{ company.city or '—' }}</td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">E-Mail</th>
+      <td>
+        {% if company.email %}
+          <a href="mailto:{{ company.email }}">{{ company.email }}</a>
+        {% else %}
+          —
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Telefon</th>
+      <td>{{ company.phone or '—' }}</td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Website</th>
+      <td>
+        {% if company.website %}
+          <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website }}</a>
+        {% else %}
+          —
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th class="has-text-weight-semibold">Beschreibung</th>
+      <td>{{ company.description or '—' }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="columns">
+  <div class="column is-half">
+    <div class="box">
+      <h2 class="title is-5">Status ändern</h2>
+      {% if statuses %}
+        <form method="post" action="{{ url_for('change_status', company_id=company.id) }}">
+          <div class="field">
+            <div class="control">
+              <div class="select is-fullwidth">
+                <select name="status_id" required>
+                  {% for status in statuses %}
+                    <option value="{{ status.id }}"
+                            {{ 'selected' if company.status_id == status.id }}>{{ status.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="button is-primary" type="submit">Status ändern</button>
+        </form>
+      {% else %}
+        <p class="has-text-grey-lighter">
+          Keine Status vorhanden. <a href="{{ url_for('statuses') }}">Status hinzufügen</a>.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="box mt-4">
+  <h2 class="title is-5">Anschreiben</h2>
+  {% if company.cover_letter %}
+    <p class="pre-wrap">{{ company.cover_letter }}</p>
+  {% else %}
+    <p class="has-text-grey-lighter">Kein Anschreiben vorhanden.</p>
+  {% endif %}
+</div>
+
+<p class="has-text-grey-lighter is-size-7 mt-3">
+  Letzte Änderung:
+  {{ company.updated_at.strftime('%d.%m.%Y %H:%M') if company.updated_at else '—' }}
+</p>
+
+<script>
+  (function () {
+    var panel = document.getElementById('editPanel');
+    var openBtn = document.getElementById('toggleEditBtn');
+    var cancelBtn = document.getElementById('cancelEditBtn');
+    function toggle(show) {
+      if (!panel) return;
+      panel.style.display = show ? 'block' : 'none';
+      if (openBtn) openBtn.textContent = show ? 'Bearbeitung ausblenden' : 'Daten bearbeiten';
+      if (show) {
+        var f = panel.querySelector('input[name="name"]');
+        if (f) f.focus();
+      }
+    }
+    if (openBtn) openBtn.addEventListener('click', function () {
+      toggle(panel.style.display === 'none');
+    });
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { toggle(false); });
+  })();
+</script>
+{% endblock %}
+

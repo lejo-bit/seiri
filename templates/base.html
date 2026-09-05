@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SEIRI – Praktikumsbewerbungen{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <nav class="navbar is-primary" role="navigation" aria-label="Hauptnavigation">
+    <div class="navbar-brand">
+      <a class="navbar-item has-text-weight-bold" href="{{ url_for('index') }}">SEIRI</a>
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false"
+         data-target="seiriNavbarMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+    <div id="seiriNavbarMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="{{ url_for('index') }}">Firmenliste</a>
+        <a class="navbar-item" href="{{ url_for('new_company') }}">Firma hinzufügen</a>
+        <a class="navbar-item" href="{{ url_for('statuses') }}">Status</a>
+        <a class="navbar-item" href="{{ url_for('profile') }}">Mein Profil</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="section">
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          {% set notif_type = 'is-danger' if category == 'error' else 'is-success' %}
+          <div class="notification {{ notif_type }}">
+            <button class="delete"></button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mobiles Menü ein-/ausblenden
+      document.querySelectorAll('.navbar-burger').forEach((burger) => {
+        burger.addEventListener('click', () => {
+          const target = document.getElementById(burger.dataset.target);
+          burger.classList.toggle('is-active');
+          if (target) target.classList.toggle('is-active');
+        });
+      });
+      // Flash-Meldungen schließen
+      document.querySelectorAll('.notification .delete').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const notif = btn.parentElement;
+          if (notif) notif.remove();
+        });
+      });
+    });
+  </script>
+</body>
+</html>

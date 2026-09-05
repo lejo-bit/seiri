@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Firmenliste – SEIRI{% endblock %}
+
+{% block content %}
+<section class="hero is-primary">
+  <div class="hero-body">
+    <p class="title">SEIRI – Praktikumsbewerbungen</p>
+    <p class="subtitle">Verwaltung deiner Bewerbungen für das Praktikum</p>
+    <div class="buttons">
+      <a class="button is-primary" href="{{ url_for('new_company') }}">Firma hinzufügen</a>
+      <a class="button is-light" href="{{ url_for('statuses') }}">Status verwalten</a>
+      <a class="button is-light" href="{{ url_for('profile') }}">Mein Profil</a>
+    </div>
+  </div>
+</section>
+
+<div class="block mt-5">
+  <h2 class="title is-4">Firmenliste</h2>
+  <p class="has-text-grey-lighter is-size-7 mb-3">
+    Klicke auf eine Spaltenüberschrift, um zu sortieren (Name / Status / letzte Änderung).
+  </p>
+
+  <form method="get" action="{{ url_for('index') }}" class="field is-grouped mb-4">
+    <input type="hidden" name="sort" value="{{ sort }}">
+    <input type="hidden" name="dir" value="{{ direction }}">
+    <div class="control">
+      <div class="select">
+        <select name="rec" aria-label="Nach Suche filtern">
+          <option value="" {{ 'selected' if not recruitment }}>Suche? – Alle</option>
+          <option value="looking" {{ 'selected' if recruitment == 'looking' }}>sucht</option>
+          <option value="not_looking" {{ 'selected' if recruitment == 'not_looking' }}>sucht nicht</option>
+          <option value="unknown" {{ 'selected' if recruitment == 'unknown' }}>unbekannt</option>
+        </select>
+      </div>
+    </div>
+    <div class="control">
+      <button class="button is-primary" type="submit">Filtern</button>
+    </div>
+    {% if recruitment %}
+      <div class="control">
+        <a class="button is-light"
+           href="{{ url_for('index', sort=sort, dir=direction) }}">Zurücksetzen</a>
+      </div>
+    {% endif %}
+  </form>
+
+  {% if companies %}
+    <table class="table is-fullwidth is-hoverable is-striped">
+      <thead>
+        <tr>
+          <th>
+            <a href="{{ url_for('index', sort='name', dir='desc' if (sort == 'name' and direction == 'asc') else 'asc') }}">
+              Name{% if sort == 'name' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="{{ url_for('index', sort='status', dir='desc' if (sort == 'status' and direction == 'asc') else 'asc') }}">
+              Status{% if sort == 'status' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
+            </a>
+          </th>
+          <th>Suche?</th>
+          <th>E-Mail</th>
+          <th>
+            <a href="{{ url_for('index', sort='updated', dir='asc' if (sort == 'updated' and direction == 'desc') else 'desc') }}">
+              Letzte Änderung{% if sort == 'updated' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
+            </a>
+          </th>
+          <th class="has-text-right">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for company in companies %}
+          <tr>
+            <td class="has-text-weight-medium">
+              <a href="{{ url_for('company_detail', company_id=company.id) }}">{{ company.name }}</a>
+            </td>
+            <td>
+              {% if company.status %}
+                <span class="tag status-tag">{{ company.status.name }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              <span class="tag recruitment-tag {{ 'looking' if company.recruitment == 'looking' else ('no' if company.recruitment == 'not_looking' else 'unknown') }}">
+                {{ company.recruitment_label }}
+              </span>
+            </td>
+            <td>{{ company.email or '—' }}</td>
+            <td class="nowrap">
+              {{ company.updated_at.strftime('%d.%m.%Y %H:%M') if company.updated_at else '—' }}
+            </td>
+            <td class="has-text-right nowrap">
+              <a class="button is-small is-light"
+                 href="{{ url_for('edit_company', company_id=company.id) }}">Bearbeiten</a>
+              <a class="button is-small is-primary is-outlined"
+                 href="{{ url_for('company_detail', company_id=company.id) }}">Details</a>
+              <a class="button is-small"
+                 href="{{ url_for('company_pdf', company_id=company.id) }}">PDF</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="notification is-info">
+      <p>Noch keine Firma hinzugefügt.</p>
+      <p class="mt-2">
+        <a class="button is-primary" href="{{ url_for('new_company') }}">
+          Erste Firma hinzufügen
+        </a>
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

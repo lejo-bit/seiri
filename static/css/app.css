@@ -1,0 +1,267 @@
+/* ============================================================
+   SEIRI – aplikacje Praktikum
+   Ciemny, profesjonalny motyw (nadpisuje domyślne style Bulmy).
+   Akcent: chłodny niebiesko-szary #7aa2f7.
+   ============================================================ */
+
+:root {
+  --seiri-bg:            #0f131a;   /* tło strony            */
+  --seiri-panel:         #1a212c;   /* panele / nawigacja    */
+  --seiri-panel-2:       #202936;   /* nieco jaśniejsze       */
+  --seiri-hover:         #273244;   /* hover na wierszach     */
+  --seiri-border:        #2b3546;   /* obramowania            */
+  --seiri-text:          #e7ebf2;   /* główny tekst           */
+  --seiri-text-dim:      #9aa7bd;   /* tekst drugorzędny      */
+  --seiri-accent:        #7aa2f7;   /* kolor akcentu          */
+  --seiri-accent-strong: #93b4ff;   /* akcent po najechaniu   */
+  --seiri-on-accent:     #0e1420;   /* tekst na akcencie      */
+}
+
+/* ---------- Tło strony i tekst ---------- */
+html,
+body {
+  background-color: var(--seiri-bg);
+  color: var(--seiri-text);
+}
+
+::selection {
+  background: var(--seiri-accent);
+  color: var(--seiri-on-accent);
+}
+
+/* ---------- Linki ---------- */
+a {
+  color: var(--seiri-accent);
+}
+a:hover {
+  color: var(--seiri-accent-strong);
+}
+
+/* ---------- Nagłówki / teksty ---------- */
+.title {
+  color: var(--seiri-text);
+}
+.subtitle {
+  color: var(--seiri-text-dim);
+}
+
+/* ---------- Nawigacja (navbar) ---------- */
+.navbar.is-primary {
+  background-color: var(--seiri-panel);
+  border-bottom: 1px solid var(--seiri-border);
+}
+.navbar-menu {
+  background-color: var(--seiri-panel);
+}
+.navbar-item {
+  color: var(--seiri-text);
+}
+.navbar-item:hover,
+.navbar-item:focus {
+  background-color: var(--seiri-panel-2);
+  color: var(--seiri-text);
+}
+.navbar-brand .navbar-item {
+  color: var(--seiri-accent-strong);
+}
+.navbar-burger span {
+  background-color: var(--seiri-text);
+}
+
+/* ---------- Hero (nagłówek strony głównej) ---------- */
+.hero.is-primary {
+  background-color: var(--seiri-panel);
+  background-image: linear-gradient(180deg, #1c2532, #151b25);
+  color: var(--seiri-text);
+}
+.hero.is-primary .title {
+  color: var(--seiri-text);
+}
+.hero.is-primary .subtitle {
+  color: var(--seiri-text-dim);
+}
+
+/* ---------- Przyciski ---------- */
+.button.is-primary {
+  background-color: var(--seiri-accent);
+  border-color: var(--seiri-accent);
+  color: var(--seiri-on-accent);
+}
+.button.is-primary:hover,
+.button.is-primary:focus {
+  background-color: var(--seiri-accent-strong);
+  border-color: var(--seiri-accent-strong);
+  color: var(--seiri-on-accent);
+}
+.button.is-light {
+  background-color: transparent;
+  border: 1px solid var(--seiri-border);
+  color: var(--seiri-text);
+}
+.button.is-light:hover,
+.button.is-light:focus {
+  background-color: var(--seiri-panel-2);
+  border-color: var(--seiri-border);
+  color: var(--seiri-text);
+}
+/* wariant „outlined” (przycisk „Szczegóły” na liście) */
+.button.is-primary.is-outlined {
+  background-color: transparent;
+  border: 1px solid var(--seiri-accent);
+  color: var(--seiri-accent);
+}
+.button.is-primary.is-outlined:hover {
+  background-color: var(--seiri-accent);
+  border-color: var(--seiri-accent);
+  color: var(--seiri-on-accent);
+}
+
+/* ---------- Panele i karty ---------- */
+.box {
+  background-color: var(--seiri-panel);
+  border: 1px solid var(--seiri-border);
+  color: var(--seiri-text);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Formularze ---------- */
+.field .label {
+  color: var(--seiri-text);
+}
+
+/* Wymóg projektu: pola tekstowe są ZAWSZE białe z czarnym tekstem. */
+.input,
+.textarea,
+.select select {
+  background-color: #ffffff !important;
+  color: #16181d !important;
+  border: 1px solid #c6ceda !important;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: #7c8798;
+  opacity: 1;
+}
+.input:hover,
+.textarea:hover,
+.select select:hover {
+  border-color: #9aa7b8 !important;
+}
+.input:focus,
+.textarea:focus,
+.select select:focus {
+  background-color: #ffffff !important;
+  color: #16181d !important;
+  border-color: var(--seiri-accent) !important;
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.35) !important;
+}
+
+/* ---------- Tabele ---------- */
+.table {
+  background-color: var(--seiri-panel);
+  color: var(--seiri-text);
+}
+.table th,
+.table td {
+  border-color: var(--seiri-border);
+  color: var(--seiri-text);
+}
+.table th {
+  color: var(--seiri-text-dim);
+  font-weight: 600;
+}
+.table.is-striped tbody tr:nth-child(even) {
+  background-color: var(--seiri-panel-2);
+}
+.table.is-hoverable tbody tr:hover {
+  background-color: var(--seiri-hover);
+}
+
+/* ---------- Okruszki (breadcrumb) ---------- */
+.breadcrumb a {
+  color: var(--seiri-accent);
+}
+.breadcrumb li.is-active a {
+  color: var(--seiri-text-dim);
+}
+
+/* ---------- Powiadomienia (flash) ---------- */
+.notification.is-success {
+  background-color: #16271f;
+  border: 1px solid #2c4a3b;
+  color: var(--seiri-text);
+}
+.notification.is-danger {
+  background-color: #311d22;
+  border: 1px solid #5c333e;
+  color: var(--seiri-text);
+}
+.notification.is-info {
+  background-color: #17233a;
+  border: 1px solid #2c4167;
+  color: var(--seiri-text);
+}
+.notification .delete {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+.notification .delete::before,
+.notification .delete::after {
+  background-color: var(--seiri-text);
+}
+
+/* ---------- Powiadomienie ostrzegawcze ---------- */
+.notification.is-warning {
+  background-color: #332a12;
+  border: 1px solid #6b5826;
+  color: var(--seiri-text);
+}
+
+/* ---------- Tagi statusów ---------- */
+.tag.status-tag {
+  background-color: rgba(122, 162, 247, 0.16);
+  border: 1px solid rgba(122, 162, 247, 0.55);
+  color: #adc5ff;
+  font-weight: 600;
+}
+
+/* ---------- Przycisk niebezpieczny (Usuń status) ---------- */
+.button.is-danger.is-outlined {
+  background-color: transparent;
+  border: 1px solid var(--seiri-danger, #f07178);
+  color: #f6a4aa;
+}
+.button.is-danger.is-outlined:hover {
+  background-color: #5c2b33;
+  border-color: #f07178;
+  color: #ffd7da;
+}
+
+/* ---------- Zawijanie tekstu (list motywacyjny) ---------- */
+.pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Nowrap (daty / przyciski akcji) ---------- */
+.nowrap {
+  white-space: nowrap;
+}
+
+/* ---------- Tagi rekrutacji „szukają kogoś?” ---------- */
+.tag.recruitment-tag.looking {
+  background-color: rgba(94, 204, 138, 0.16);
+  border: 1px solid rgba(94, 204, 138, 0.55);
+  color: #9fe8bd;
+}
+.tag.recruitment-tag.no {
+  background-color: rgba(148, 160, 180, 0.14);
+  border: 1px solid rgba(148, 160, 180, 0.5);
+  color: #c3cddd;
+}
+.tag.recruitment-tag.unknown {
+  background-color: rgba(230, 190, 110, 0.16);
+  border: 1px solid rgba(230, 190, 110, 0.55);
+  color: #f4d9a0;
+}
+
+
