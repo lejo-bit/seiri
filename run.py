@@ -1,7 +1,7 @@
-"""Uruchomienie serwera SEIRI (aplikacja + start).
+"""Start the SEIRI server (application + run).
 
-Przy każdym starcie sprawdza i aktualizuje bazę danych (startdb.ensure_schema),
-a następnie uruchamia serwer deweloperski.
+On every start it checks and updates the database schema
+(startdb.ensure_schema), then starts the development server.
 """
 import os
 
@@ -13,7 +13,7 @@ from startdb import ensure_schema
 
 
 def create_app(test_config=None):
-    """Fabryka aplikacji Flask."""
+    """Flask application factory."""
     app = Flask(__name__)
     app.config.from_mapping(SECRET_KEY=os.environ.get("SECRET_KEY", "dev"))
 
@@ -40,8 +40,8 @@ if __name__ == "__main__":
     app = create_app()
     ensure_schema(app)
 
-    # Domyślny port 5001 — na macOS port 5000 jest zajęty przez systemowy
-    # proces ControlCenter (AirPlay), więc tam nie wystartujemy.
+    # Default port is 5001 — on macOS port 5000 is taken by the system
+    # ControlCenter process (AirPlay), so we cannot start there.
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "5001"))
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"

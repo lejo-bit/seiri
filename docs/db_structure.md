@@ -1,83 +1,125 @@
-# Struktura bazy danych
+# Database structure
 
-## Przegląd
+## Overview
 
-Aplikacja **SEIRI – Praktikum** korzysta z **SQLite** (domyślnie plik
-`instance/seiri.db`) obsługiwanego przez **Flask-SQLAlchemy** (wersja 3.1.1).
+The **SEIRI – Praktikum** application uses **SQLite** (by default the file
+`instance/seiri.db`) managed by **Flask-SQLAlchemy** (version 3.1.1).
 
-Definicja modeli znajduje się w pliku `models.py`, w którym współdzielona
-instancja `db = SQLAlchemy()` jest inicjalizowana w fabryce aplikacji
-(`create_app()` w `app.py`).
+The models are defined in `models.py`, where the shared
+`db = SQLAlchemy()` instance is initialised in the application factory
+(`create_app()` in `run.py`).
 
-> Tabele tworzone są poleceniem:
+> Tables are created / updated with:
 > ```
-> flask --app app init-db
+> python run.py
 > ```
-> (wewnętrznie wykonuje `db.create_all()`).
+> which calls `startdb.ensure_schema()` on every start (it creates missing
+> tables and columns via `ALTER TABLE`, preserving existing data). You can also
+> run it explicitly: `python startdb.py`.
+
+## Model: `Status`
+
+Represents an **application status** that can be assigned to companies. Maps to
+the table `status`.
+
+| Column | Type         | Constraints     | Description           |
+|--------|--------------|-----------------|-----------------------|
+| `id`   | `Integer`    | `PRIMARY KEY`   | Status identifier     |
+| `name` | `String(80)` | `NOT NULL`, UNIQUE | Status name       |
+
+Related records: a `Status` can be used by many `Company` records (one-to-many).
 
 ## Model: `Company`
 
-Reprezentuje **firmę oferującą miejsca praktyk**. Mapa na tabelę o nazwie
-`company`.
+Represents a **company offering a practical training (Praktikum) position**.
+Maps to the table `company`.
 
-### Kolumny
+### Columns
 
-| Kolumna       | Typ          | Ograniczenia             | Opis                                |
-|---------------|--------------|--------------------------|-------------------------------------|
-| `id`          | `Integer`    | `PRIMARY KEY`, AUTOINC   | Identyfikator firmy                 |
-| `name`        | `String(120)`| `NOT NULL`               | Nazwa firmy (wymagana)              |
-| `address`     | `String(200)`| –                        | Adres firmy                         |
-| `email`       | `String(120)`| –                        | Adres e-mail firmy                  |
-| `phone`       | `String(40)` | –                        | Numer telefonu                      |
-| `description` | `Text`       | –                        | Opis działalności / oferty praktyk  |
+| Column         | Type          | Constraints             | Description                              |
+|----------------|---------------|-------------------------|------------------------------------------|
+| `id`           | `Integer`     | `PRIMARY KEY`, AUTOINC  | Company identifier                        |
+| `name`         | `String(120)` | `NOT NULL`              | Company name (required)                   |
+| `address`      | `String(200)` | –                       | Address line 1                            |
+| `address2`     | `String(200)` | –                       | Address line 2                            |
+| `city`         | `String(120)` | –                       | City / postcode                           |
+| `email`        | `String(120)` | –                       | Company e-mail                            |
+| `phone`        | `String(40)`  | –                       | Phone number                              |
+| `description`  | `Text`        | –                       | Company / offer description               |
+| `website`      | `String(255)` | –                       | Website URL                               |
+| `cover_letter` | `Text`        | –                       | Cover letter (Anschreiben) text           |
+| `status_id`    | `Integer`     | FK → `status.id`        | Assigned status (optional)                |
+| `recruitment`  | `String(20)`  | –                       | Recruitment state (sucht / sucht nicht / unbekannt) |
+| `updated_at`   | `DateTime`    | –                       | Last-change timestamp (auto)              |
 
-### Uwagi
+### Recruitment states
 
-- Kolumny `address`, `email`, `phone`, `description` nie mają wartości
-  domyślnych — po utworzeniu rekordu bez podania tych pól przyjmą `NULL`.
-- Kolumna `name` jest obowiązkowa (`NOT NULL`); jej walidacja odbywa się
-  w warstwie aplikacji (`app.py`, trasa `new_company`), a nie na poziomie
-  bazy danych.
+`recruitment` stores one of the codes defined in `RECRUITMENT_LABELS`:
+`looking` (sucht), `not_looking` (sucht nicht), `unknown` (unbekannt). The
+displayed label is available via the `recruitment_label` property. The default
+for new companies is `unknown`.
 
-### Odpowiednik SQL (SQLite)
+### Notes
+
+- `name` is required; validation happens in the application layer
+  (`routes.py`, `new_company` / `edit_company`).
+- `status_id` is optional — a company may be saved without a status and assigned
+  one later from the detail page.
+- `updated_at` is set automatically on insert and on every update (including a
+  status change); it backs the „Letzte Änderung“ column and sorting.
+
+### SQL equivalent (SQLite)
 
 ```sql
 CREATE TABLE company (
     id          INTEGER NOT NULL,
     name        VARCHAR(120) NOT NULL,
     address     VARCHAR(200),
+    address2    VARCHAR(200),
+    city        VARCHAR(120),
     email       VARCHAR(120),
     phone       VARCHAR(40),
     description TEXT,
-    PRIMARY KEY (id)
+    website     VARCHAR(255),
+    cover_letter TEXT,
+    status_id   INTEGER,
+    recruitment VARCHAR(20),
+    updated_at  DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(status_id) REFERENCES status (id)
 );
 ```
 
-### Powiązania / relacje
+## Model: `Profile`
 
-Brak relacji — model `Company` jest obecnie samodzielny (nie ma tabel
-powiązanych kluczami obcymi). Struktura jest gotowa do rozbudowy o kolejne
-modele (np. oferty praktyk powiązane z firmą).
+Holds a single row with **my personal data**, used in the cover letter header
+and signature (PDF). Maps to the table `profile`.
 
-## Odwzorowanie ORM
+| Column     | Type          | Description                     |
+|------------|---------------|---------------------------------|
+| `id`       | `Integer`     | Primary key (always `1`)        |
+| `full_name`| `String(160)` | Full name                       |
+| `address`  | `String(200)` | Street address                  |
+| `city`     | `String(120)` | City / postcode                 |
+| `email`    | `String(120)` | E-mail                          |
+| `phone`    | `String(40)`  | Phone                           |
+| `position` | `String(200)` | Job title (default: Fachinformatiker – Daten und Prozessanalyse) |
 
-| Warstwa Python (Flask-SQLAlchemy)  | Warstwa SQL / baza          |
-|------------------------------------|-----------------------------|
-| `Company`                          | tabela `company`            |
-| `Company.id`                       | kolumna `id`                |
-| `Company.name`                     | kolumna `name`              |
-| `Company.address`                  | kolumna `address`           |
-| `Company.email`                    | kolumna `email`             |
-| `Company.phone`                    | kolumna `phone`             |
-| `Company.description`              | kolumna `description`       |
+## ORM mapping
 
-## Konfiguracja połączenia
+| Python (Flask-SQLAlchemy) | SQL / database         |
+|---------------------------|------------------------|
+| `Status`                  | table `status`         |
+| `Company`                 | table `company`        |
+| `Profile`                 | table `profile`        |
+| `Company.status`          | FK `status_id` → `status.id` |
+| `Company.recruitment_label` | derived from `recruitment` |
 
-URI bazy danych jest pobierane kolejno z:
+## Connection configuration
 
-1. zmiennej środowiskowej `DATABASE_URL`,
-2. wartości domyślnej `sqlite:///instance/seiri.db` (względem katalogu
-   projektu).
+The database URI is resolved in this order:
 
-W testach używany jest adres in-memory: `sqlite://`.
+1. the `DATABASE_URL` environment variable,
+2. the default `sqlite:///instance/seiri.db` (relative to the project folder).
 
+Tests use the in-memory URI: `sqlite://`.

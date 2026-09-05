@@ -1,9 +1,18 @@
-"""Trasy aplikacji SEIRI — rozdzielone dla czytelności."""
+"""SEIRI application routes — split out for readability."""
 import datetime
 import os
 
 from fpdf import FPDF
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import (
+    Response,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import (
     DEFAULT_POSITION,
@@ -11,6 +20,7 @@ from models import (
     RECRUITMENT_LABELS,
     Company,
     Profile,
+    Settings,
     Status,
     db,
 )
@@ -19,10 +29,10 @@ FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "f
 
 
 # --------------------------------------------------------------------------- #
-# Pomocnicze
+# Helpers
 # --------------------------------------------------------------------------- #
 def _fields_from_form():
-    """Pobiera i czyści pola firmowe z formularza."""
+    """Read and trim the company fields from the form."""
     return {
         "name": request.form.get("name", "").strip(),
         "address": request.form.get("address", "").strip(),
@@ -43,7 +53,7 @@ def _clean_recruitment(value):
 
 
 def _apply_company_form(company, fields):
-    """Przypisuje pola formularza do obiektu Company."""
+    """Apply the form fields to the Company object."""
     company.name = fields["name"]
     company.address = fields["address"]
     company.address2 = fields["address2"]
@@ -69,7 +79,7 @@ def _statuses():
 
 
 def _get_profile():
-    """Zwraca (tworząc w razie potrzeby) pojedynczy rekord moich danych."""
+    """Return (creating if needed) the single record of my personal data."""
     profile = db.session.get(Profile, 1)
     if profile is None:
         profile = Profile(id=1, position=DEFAULT_POSITION)
@@ -78,8 +88,27 @@ def _get_profile():
     return profile
 
 
+def _get_settings():
+    """Return (creating if needed) the single settings record."""
+    settings = db.session.get(Settings, 1)
+    if settings is None:
+        settings = Settings(id=1)
+        db.session.add(settings)
+        db.session.commit()
+    return settings
+
+
+def _password_enforced(settings=None):
+    st = settings or _get_settings()
+    return bool(st.password_required and st.password_hash)
+
+
+def _is_authed():
+    return session.get("admin_ok") is True
+
+
 # --------------------------------------------------------------------------- #
-# Firma
+# Company
 # --------------------------------------------------------------------------- #
 def index():
     sort = request.args.get("sort", "updated")
@@ -152,7 +181,7 @@ def company_detail(company_id):
 
 
 def change_status(company_id):
-    """Szybka zmiana statusu z poziomu szczegółów firmy."""
+    """Quickly change the status from the company detail page."""
     company = Company.query.get_or_404(company_id)
     status_id = request.form.get("status_id", type=int)
     status = db.session.get(Status, status_id) if status_id else None
@@ -166,56 +195,135 @@ def change_status(company_id):
 
 
 # --------------------------------------------------------------------------- #
-# Statusy (panel)
+# Admin panel (statuses, profile, password)
 # --------------------------------------------------------------------------- #
 def statuses():
-    if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        duplicate = Status.query.filter(db.func.lower(Status.name) == name.lower()).first()
-        if not name:
-            flash("Der Name des Status ist erforderlich.", "error")
-        elif duplicate:
-            flash(f"Der Status „{name}“ existiert bereits.", "error")
-        else:
-            db.session.add(Status(name=name))
-            db.session.commit()
-            flash(f"Status „{name}“ wurde hinzugefügt.", "success")
-        return redirect(url_for("statuses"))
-    return render_template("statuses.html", statuses=_statuses())
+    """Legacy URL — redirects to the admin panel."""
+    return redirect(url_for("admin"))
 
 
 def delete_status(status_id):
-    status = Status.query.get_or_404(status_id)
-    used = Company.query.filter(Company.status_id == status_id).count()
-    if used:
-        flash(
-            f"Der Status „{status.name}“ kann nicht gelöscht werden — er wird von {used} "
-            f"{'Firma' if used == 1 else 'Firmen'} verwendet. Ändern Sie dort zuerst den Status.",
-            "error",
-        )
-        return redirect(url_for("statuses"))
-    db.session.delete(status)
-    db.session.commit()
-    flash(f"Status „{status.name}“ wurde gelöscht.", "success")
-    return redirect(url_for("statuses"))
+    """Legacy URL — deletion happens in the admin panel."""
+    return redirect(url_for("admin"))
 
 
-# --------------------------------------------------------------------------- #
-# Profil (moje dane) + generowanie PDF
-# --------------------------------------------------------------------------- #
 def profile():
-    data = _get_profile()
+    """Legacy URL — editing happens in the admin panel."""
+    return redirect(url_for("admin"))
+
+
+def admin():
+    settings = _get_settings()
+    enforced = _password_enforced(settings)
+
     if request.method == "POST":
-        data.full_name = request.form.get("full_name", "").strip()
-        data.address = request.form.get("address", "").strip()
-        data.city = request.form.get("city", "").strip()
-        data.email = request.form.get("email", "").strip()
-        data.phone = request.form.get("phone", "").strip()
-        data.position = request.form.get("position", "").strip() or DEFAULT_POSITION
+        action = request.form.get("action", "")
+        if enforced and not _is_authed():
+            flash("Bitte zuerst das Passwort eingeben.", "error")
+            return redirect(url_for("admin"))
+
+        if action == "add_status":
+            name = request.form.get("name", "").strip()
+            duplicate = Status.query.filter(
+                db.func.lower(Status.name) == name.lower()
+            ).first()
+            if not name:
+                flash("Der Name des Status ist erforderlich.", "error")
+            elif duplicate:
+                flash(f"Der Status „{name}“ existiert bereits.", "error")
+            else:
+                db.session.add(Status(name=name))
+                db.session.commit()
+                flash(f"Status „{name}“ wurde hinzugefügt.", "success")
+        elif action == "delete_status":
+            status_id = request.form.get("status_id", type=int)
+            status = db.session.get(Status, status_id) if status_id else None
+            if status is None:
+                flash("Status nicht gefunden.", "error")
+            else:
+                used = Company.query.filter(Company.status_id == status.id).count()
+                if used:
+                    flash(
+                        f"Der Status „{status.name}“ kann nicht gelöscht werden — er "
+                        f"wird von {used} "
+                        f"{'Firma' if used == 1 else 'Firmen'} verwendet.",
+                        "error",
+                    )
+                else:
+                    db.session.delete(status)
+                    db.session.commit()
+                    flash(f"Status „{status.name}“ wurde gelöscht.", "success")
+        elif action == "save_profile":
+            data = _get_profile()
+            data.full_name = request.form.get("full_name", "").strip()
+            data.address = request.form.get("address", "").strip()
+            data.city = request.form.get("city", "").strip()
+            data.email = request.form.get("email", "").strip()
+            data.phone = request.form.get("phone", "").strip()
+            data.position = request.form.get("position", "").strip() or DEFAULT_POSITION
+            db.session.commit()
+            flash("Profildaten gespeichert.", "success")
+        elif action == "save_password":
+            _handle_password_form(settings)
+        return redirect(url_for("admin"))
+
+    if enforced and not _is_authed():
+        return render_template("adminpanel.html", mode="login", settings=settings)
+
+    return render_template(
+        "adminpanel.html",
+        mode="panel",
+        statuses=_statuses(),
+        profile=_get_profile(),
+        settings=settings,
+    )
+
+
+def _handle_password_form(settings):
+    """Process the password form and flash feedback."""
+    required = request.form.get("password_required") is not None
+    if not required:
+        settings.password_required = False
         db.session.commit()
-        flash("Profildaten gespeichert.", "success")
-        return redirect(url_for("profile"))
-    return render_template("profile.html", profile=data)
+        flash("Passwort ist nicht mehr erforderlich.", "success")
+        return
+
+    pw = request.form.get("password", "")
+    confirm = request.form.get("password_confirm", "")
+    if not settings.password_hash and not pw:
+        flash("Bitte setzen Sie ein Passwort.", "error")
+        return
+    if pw or confirm:
+        if pw != confirm:
+            flash("Die Passwörter stimmen nicht überein.", "error")
+            return
+        if len(pw) < 6:
+            flash("Das Passwort muss mindestens 6 Zeichen haben.", "error")
+            return
+        settings.password_hash = generate_password_hash(pw, method="pbkdf2:sha256")
+    settings.password_required = True
+    db.session.commit()
+    flash("Einstellungen gespeichert.", "success")
+
+
+def admin_login():
+    settings = _get_settings()
+    if not settings.password_hash:
+        return redirect(url_for("admin"))
+    password = request.form.get("password", "")
+    if check_password_hash(settings.password_hash, password):
+        session["admin_ok"] = True
+        flash("Angemeldet.", "success")
+    else:
+        flash("Falsches Passwort.", "error")
+    return redirect(url_for("admin"))
+
+
+def admin_logout():
+    session.pop("admin_ok", None)
+    flash("Abgemeldet.", "success")
+    return redirect(url_for("admin"))
+
 
 
 def company_pdf(company_id):
@@ -226,15 +334,15 @@ def company_pdf(company_id):
     pdf.set_auto_page_break(auto=True, margin=22)
     pdf.set_margins(24, 20, 24)
     pdf.set_text_color(25, 25, 25)
-    pdf.add_font("arial", "", os.path.join(FONT_DIR, "arial.ttf"))
-    pdf.add_font("arial", "B", os.path.join(FONT_DIR, "arial-bold.ttf"))
+    pdf.add_font("inter", "", os.path.join(FONT_DIR, "inter.ttf"))
+    pdf.add_font("inter", "B", os.path.join(FONT_DIR, "inter-bold.ttf"))
     pdf.add_page()
 
-    # --- nadawca (moje dane) ---
-    pdf.set_font("arial", "B", 11)
+    # --- sender (my personal data) ---
+    pdf.set_font("inter", "B", 11)
     if profile_data.full_name:
         pdf.cell(0, 6, profile_data.full_name, new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("arial", "", 9.5)
+    pdf.set_font("inter", "", 9.5)
     sender = []
     if profile_data.address:
         sender.append(profile_data.address)
@@ -248,11 +356,11 @@ def company_pdf(company_id):
         pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
 
-    # --- firma (adresat) ---
+    # --- company (recipient) ---
     if company.name:
-        pdf.set_font("arial", "B", 10)
+        pdf.set_font("inter", "B", 10)
         pdf.cell(0, 6, company.name, new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("arial", "", 10)
+    pdf.set_font("inter", "", 10)
     if company.address:
         pdf.cell(0, 5, company.address, new_x="LMARGIN", new_y="NEXT")
     if company.address2:
@@ -261,35 +369,35 @@ def company_pdf(company_id):
         pdf.cell(0, 5, company.city, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(8)
 
-    # --- Datum/Ort (über dem Titel) + Titel ---
+    # --- date / place (above the title) + title ---
     today = datetime.date.today().strftime("%d.%m.%Y")
     dateline = f"{profile_data.city}, {today}" if profile_data.city else today
-    pdf.set_font("arial", "", 10)
+    pdf.set_font("inter", "", 10)
     pdf.cell(0, 6, dateline, new_x="LMARGIN", new_y="NEXT", align="R")
     pdf.ln(3)
 
     position = (profile_data.position or DEFAULT_POSITION).strip()
     subject = f"Bewerbung um einen Praktikumsplatz: {position}"
-    pdf.set_font("arial", "B", 11)
+    pdf.set_font("inter", "B", 11)
     pdf.cell(0, 7, subject, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(4)
 
-    # --- Anschreiben (body) ---
+    # --- cover letter (body) ---
     body = (company.cover_letter or "").strip()
     if not body:
         body = (
             "Sehr geehrte Damen und Herren,\n\n[Hier das Anschreiben eintragen — "
             "Feld „Anschreiben“ auf der Firmenseite.]"
         )
-    pdf.set_font("arial", "", 11)
+    pdf.set_font("inter", "", 11)
     pdf.multi_cell(0, 6.5, body)
     pdf.ln(10)
 
-    # --- Ende und Unterschrift ---
-    pdf.set_font("arial", "", 11)
+    # --- closing and signature ---
+    pdf.set_font("inter", "", 11)
     pdf.cell(0, 6, "Mit freundlichen Grüßen", new_x="LMARGIN", new_y="NEXT")
     if profile_data.full_name:
-        pdf.set_font("arial", "B", 11)
+        pdf.set_font("inter", "B", 11)
         pdf.cell(0, 6, profile_data.full_name, new_x="LMARGIN", new_y="NEXT")
 
     data = bytes(pdf.output())
@@ -302,10 +410,10 @@ def company_pdf(company_id):
 
 
 # --------------------------------------------------------------------------- #
-# Rejestracja tras
+# Route registration
 # --------------------------------------------------------------------------- #
 def register_routes(app):
-    """Rejestruje wszystkie trasy w aplikacji."""
+    """Register all routes on the application."""
     app.add_url_rule("/", view_func=index)
     app.add_url_rule("/companies/new", view_func=new_company, methods=["GET", "POST"])
     app.add_url_rule(
@@ -322,11 +430,9 @@ def register_routes(app):
     )
     app.add_url_rule("/profile", view_func=profile, methods=["GET", "POST"])
     app.add_url_rule("/statuses", view_func=statuses, methods=["GET", "POST"])
-    app.add_url_rule(
-        "/statuses/<int:status_id>/delete",
-        view_func=delete_status,
-        methods=["POST"],
-    )
+    app.add_url_rule("/admin", view_func=admin, methods=["GET", "POST"])
+    app.add_url_rule("/admin/login", view_func=admin_login, methods=["POST"])
+    app.add_url_rule("/admin/logout", view_func=admin_logout, methods=["POST"])
 
 
 

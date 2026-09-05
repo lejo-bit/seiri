@@ -5,6 +5,6 @@ venv/
 .venv/
 instance/
 *.db
-# Baza danych SQLite
+# SQLite database
 instance/seiri.db
 .DS_Store

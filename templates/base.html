@@ -22,8 +22,7 @@
       <div class="navbar-start">
         <a class="navbar-item" href="{{ url_for('index') }}">Firmenliste</a>
         <a class="navbar-item" href="{{ url_for('new_company') }}">Firma hinzufügen</a>
-        <a class="navbar-item" href="{{ url_for('statuses') }}">Status</a>
-        <a class="navbar-item" href="{{ url_for('profile') }}">Mein Profil</a>
+        <a class="navbar-item" href="{{ url_for('admin') }}">Admin</a>
       </div>
     </div>
   </nav>
@@ -46,7 +45,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Mobiles Menü ein-/ausblenden
+      // Toggle the mobile menu
       document.querySelectorAll('.navbar-burger').forEach((burger) => {
         burger.addEventListener('click', () => {
           const target = document.getElementById(burger.dataset.target);
@@ -54,7 +53,7 @@
           if (target) target.classList.toggle('is-active');
         });
       });
-      // Flash-Meldungen schließen
+      // Close flash notifications
       document.querySelectorAll('.notification .delete').forEach((btn) => {
         btn.addEventListener('click', () => {
           const notif = btn.parentElement;

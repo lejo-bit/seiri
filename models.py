@@ -1,4 +1,4 @@
-"""Modele bazy danych dla aplikacji SEIRI – Praktikum."""
+"""Database models for the SEIRI – Praktikum application."""
 import datetime
 
 from flask_sqlalchemy import SQLAlchemy
@@ -7,11 +7,11 @@ db = SQLAlchemy()
 
 
 def _utcnow():
-    """Aktualny czas UTC (naive) — zgodny z różnymi wersjami Pythona."""
+    """Current UTC time (naive) — compatible across Python versions."""
     return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 
-# Feste Rekrutierungs-Zustände („sucht das Unternehmen jemanden für ein Praktikum?“)
+# Fixed recruitment states: "is the company looking for a trainee/praktikum?"
 RECRUITMENT_LABELS = {
     "looking": "sucht",
     "not_looking": "sucht nicht",
@@ -19,12 +19,12 @@ RECRUITMENT_LABELS = {
 }
 RECRUITMENT_DEFAULT = "unknown"
 
-# Domyślna nazwa stanowiska (używana w liście / PDF)
+# Default job title (used in the cover letter / PDF)
 DEFAULT_POSITION = "Fachinformatiker – Daten und Prozessanalyse"
 
 
 class Status(db.Model):
-    """Status aplikacji, który może być przypisany firmom."""
+    """Application status that can be assigned to companies."""
 
     __tablename__ = "status"
 
@@ -38,7 +38,7 @@ class Status(db.Model):
 
 
 class Company(db.Model):
-    """Firma oferująca miejsca praktyk."""
+    """A company offering practical training (Praktikum) positions."""
 
     __tablename__ = "company"
 
@@ -71,7 +71,7 @@ class Company(db.Model):
 
 
 class Profile(db.Model):
-    """Moje dane (jeden rekord, używany w liście motywacyjnym / PDF)."""
+    """My personal data (single record, used in the cover letter / PDF)."""
 
     __tablename__ = "profile"
 
@@ -85,5 +85,15 @@ class Profile(db.Model):
 
     def __repr__(self):
         return f"<Profile {self.full_name!r}>"
+
+
+class Settings(db.Model):
+    """Application settings (single row)."""
+
+    __tablename__ = "settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    password_required = db.Column(db.Boolean, nullable=False, default=False)
+    password_hash = db.Column(db.String(255))
 
 

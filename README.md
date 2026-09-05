@@ -1,53 +1,52 @@
 # seiri
 
-Aplikacja Flask **SEIRI – aplikacje Praktikum** — baza firm oferujących miejsca
-praktyk. Obsługuje cały workflow wysyłania aplikacji na praktyki:
+A Flask application **SEIRI – Praktikum** for tracking internship applications
+(Fachinformatiker – Daten und Prozessanalyse). The whole workflow of sending
+applications is supported:
 
-- każda firma ma **status** (dodajesz/usuwasz je w panelu „Statusy”),
-- pole **„szukają kogoś na praktyki?”** (szukają / nie szukają / nie wiem),
-- **stronę internetową** oraz zapisany **list motywacyjny** (tekst w bazie),
-- **„Mój profil”** z Twoimi danymi,
-- sortowalna lista (po nazwie / statusie / dacie ostatniej zmiany),
-- przycisk **„Generuj PDF”** — ładny list motywacyjny z danymi firmy,
-  Twoimi danymi i datą (A4).
+- every company has a **status** (manage them in the „Status“ panel),
+- a **„Suche?“ / recruitment** field (sucht / sucht nicht / unbekannt),
+- a **website** and a stored **cover letter** (Anschreiben, text in the DB),
+- a **„Mein Profil“** page with your personal data,
+- a sortable list (by name / status / last change),
+- a **„PDF generieren“** button — a clean A4 cover letter with the company data,
+  your data and the current date.
 
-Interfejs korzysta z frameworka CSS **Bulma** (ciemny motyw).
+The interface is styled with the **Bulma** CSS framework (dark theme). The UI
+text is in German.
 
+## Run
 
-## Uruchomienie
-
-W katalogu projektu, w środowisku wirtualnym `.venv`:
+In the project directory, using the `.venv` virtual environment:
 
 ```bash
-# (opcjonalnie) przygotuj / zaktualizuj schemat bazy danych
+# (optional) create / update the database schema
 .venv/bin/python startdb.py
 
-# uruchom serwer deweloperski
+# start the development server
 .venv/bin/python run.py
 ```
 
-Przy każdym starcie `run.py` sam sprawdza istniejącą bazę danych i aktualizuje
-jej schemat (tworzy brakujące tabele i kolumny — bez kasowania danych).
+On every start, `run.py` checks the existing database and updates its schema
+(creates missing tables and columns — without deleting any data).
 
-Aplikacja będzie dostępna pod adresem: **http://127.0.0.1:5001**
+The app will be available at: **http://127.0.0.1:5001**
 
-> Uwaga: domyślnie używany jest port **5001**, ponieważ na macOS port 5000
-> jest zajęty przez systemowy proces ControlCenter (AirPlay) i nie da się tam
-> uruchomić serwera. Port i host można zmienić zmiennymi środowiskowymi:
+> Note: the default port is **5001**, because on macOS port 5000 is taken by the
+> system ControlCenter process (AirPlay) and cannot be used. Port and host can
+> be changed via environment variables:
 >
 > ```bash
 > PORT=8080 HOST=127.0.0.1 .venv/bin/python run.py
 > ```
 
-## Struktura
+## Structure
 
-- `models.py` — modele bazy danych (`Status`, `Company`, `Profile`) — patrz `docs/db_structure.md`
-- `routes.py` — trasy aplikacji
-- `run.py` — fabryka aplikacji + start serwera
-- `startdb.py` — tworzenie / automatyczna aktualizacja bazy danych
-- `templates/` — szablony HTML (Bulma)
-- `static/css/app.css` — motyw (ciemny, profesjonalny)
-- `static/fonts/` — czcionki użyte w generowaniu PDF (Arial + pogrubiona)
-- `docs/db_structure.md` — opis struktury bazy danych
-
-
+- `models.py` — database models (`Status`, `Company`, `Profile`) — see `docs/db_structure.md`
+- `routes.py` — application routes
+- `run.py` — application factory + server start
+- `startdb.py` — database creation / automatic schema update
+- `templates/` — HTML templates (Bulma)
+- `static/css/app.css` — theme (dark, professional)
+- `static/fonts/` — fonts used for PDF generation (Arial regular + bold)
+- `docs/db_structure.md` — database structure documentation

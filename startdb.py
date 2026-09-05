@@ -1,6 +1,6 @@
-"""Tworzenie i automatyczna aktualizacja bazy danych SEIRI.
+"""Create and automatically update the SEIRI database.
 
-Można też uruchomić jako skrypt:
+Can also be run as a script:
     python startdb.py
 """
 import datetime
@@ -12,12 +12,12 @@ from models import db, _utcnow
 
 
 def ensure_schema(app):
-    """Sprawdza istniejącą bazę danych i aktualizuje jej schemat.
+    """Check the existing database and update its schema.
 
-    - tworzy katalog instance/ (jeśli nie istnieje),
-    - tworzy brakujące tabele,
-    - dodaje brakujące kolumny do istniejących tabel (ALTER TABLE).
-    Istniejące dane zostają zachowane.
+    - creates the instance/ directory (if missing),
+    - creates missing tables,
+    - adds missing columns to existing tables (ALTER TABLE).
+    Existing data is preserved.
     """
     basedir = os.path.abspath(os.path.dirname(__file__))
     os.makedirs(os.path.join(basedir, "instance"), exist_ok=True)
@@ -26,16 +26,16 @@ def ensure_schema(app):
     with app.app_context():
         engine = db.engine
 
-        # 1) brakujące tabele
+        # 1) missing tables
         inspector = inspect(engine)
         existing = set(inspector.get_table_names())
         for table in db.metadata.sorted_tables:
             if table.name not in existing:
                 table.create(engine)
                 changed = True
-                print(f"Utworzono tabelę: {table.name}")
+                print(f"Created table: {table.name}")
 
-        # 2) brakujące kolumny w istniejących tabelach
+        # 2) missing columns in existing tables
         inspector = inspect(engine)
         existing = set(inspector.get_table_names())
         with engine.begin() as conn:
@@ -50,9 +50,9 @@ def ensure_schema(app):
                             text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {col_type}")
                         )
                         changed = True
-                        print(f"Dodano kolumnę: {table.name}.{column.name}")
+                        print(f"Added column: {table.name}.{column.name}")
 
-        # 3) backfill: nadaj datę „ostatniej zmiany” rekordom bez niej
+        # 3) backfill: give records without one a "last change" date
         inspector = inspect(engine)
         if {"company"} <= set(inspector.get_table_names()):
             cols = {c["name"] for c in inspector.get_columns("company")}
@@ -64,7 +64,7 @@ def ensure_schema(app):
                     )
                     if result.rowcount:
                         changed = True
-                        print(f"Ustawiono datę zmiany dla {result.rowcount} firm.")
+                        print(f"Set change date for {result.rowcount} companies.")
 
     return changed
 
@@ -74,9 +74,9 @@ def main():
 
     app = create_app()
     if ensure_schema(app):
-        print("Schemat bazy danych został zaktualizowany.")
+        print("Database schema has been updated.")
     else:
-        print("Baza danych jest aktualna.")
+        print("Database is up to date.")
 
 
 if __name__ == "__main__":

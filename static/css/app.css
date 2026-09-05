@@ -1,23 +1,23 @@
 /* ============================================================
-   SEIRI – aplikacje Praktikum
-   Ciemny, profesjonalny motyw (nadpisuje domyślne style Bulmy).
-   Akcent: chłodny niebiesko-szary #7aa2f7.
+   SEIRI – Praktikum
+   Dark, professional theme (overrides Bulma defaults).
+   Accent: cool blue-grey #7aa2f7.
    ============================================================ */
 
 :root {
-  --seiri-bg:            #0f131a;   /* tło strony            */
-  --seiri-panel:         #1a212c;   /* panele / nawigacja    */
-  --seiri-panel-2:       #202936;   /* nieco jaśniejsze       */
-  --seiri-hover:         #273244;   /* hover na wierszach     */
-  --seiri-border:        #2b3546;   /* obramowania            */
-  --seiri-text:          #e7ebf2;   /* główny tekst           */
-  --seiri-text-dim:      #9aa7bd;   /* tekst drugorzędny      */
-  --seiri-accent:        #7aa2f7;   /* kolor akcentu          */
-  --seiri-accent-strong: #93b4ff;   /* akcent po najechaniu   */
-  --seiri-on-accent:     #0e1420;   /* tekst na akcencie      */
+  --seiri-bg:            #0f131a;   /* page background         */
+  --seiri-panel:         #1a212c;   /* panels / navbar         */
+  --seiri-panel-2:       #202936;   /* slightly lighter        */
+  --seiri-hover:         #273244;   /* row hover               */
+  --seiri-border:        #2b3546;   /* borders                 */
+  --seiri-text:          #e7ebf2;   /* primary text            */
+  --seiri-text-dim:      #9aa7bd;   /* secondary text          */
+  --seiri-accent:        #7aa2f7;   /* accent colour           */
+  --seiri-accent-strong: #93b4ff;   /* accent on hover         */
+  --seiri-on-accent:     #0e1420;   /* text on accent          */
 }
 
-/* ---------- Tło strony i tekst ---------- */
+/* ---------- Page background & text ---------- */
 html,
 body {
   background-color: var(--seiri-bg);
@@ -29,7 +29,7 @@ body {
   color: var(--seiri-on-accent);
 }
 
-/* ---------- Linki ---------- */
+/* ---------- Links ---------- */
 a {
   color: var(--seiri-accent);
 }
@@ -37,7 +37,7 @@ a:hover {
   color: var(--seiri-accent-strong);
 }
 
-/* ---------- Nagłówki / teksty ---------- */
+/* ---------- Headings / text ---------- */
 .title {
   color: var(--seiri-text);
 }
@@ -45,7 +45,7 @@ a:hover {
   color: var(--seiri-text-dim);
 }
 
-/* ---------- Nawigacja (navbar) ---------- */
+/* ---------- Navigation (navbar) ---------- */
 .navbar.is-primary {
   background-color: var(--seiri-panel);
   border-bottom: 1px solid var(--seiri-border);
@@ -68,7 +68,7 @@ a:hover {
   background-color: var(--seiri-text);
 }
 
-/* ---------- Hero (nagłówek strony głównej) ---------- */
+/* ---------- Hero (home page header) ---------- */
 .hero.is-primary {
   background-color: var(--seiri-panel);
   background-image: linear-gradient(180deg, #1c2532, #151b25);
@@ -81,7 +81,7 @@ a:hover {
   color: var(--seiri-text-dim);
 }
 
-/* ---------- Przyciski ---------- */
+/* ---------- Buttons ---------- */
 .button.is-primary {
   background-color: var(--seiri-accent);
   border-color: var(--seiri-accent);
@@ -104,7 +104,7 @@ a:hover {
   border-color: var(--seiri-border);
   color: var(--seiri-text);
 }
-/* wariant „outlined” (przycisk „Szczegóły” na liście) */
+/* outlined variant (the "Details" button in the list) */
 .button.is-primary.is-outlined {
   background-color: transparent;
   border: 1px solid var(--seiri-accent);
@@ -116,7 +116,7 @@ a:hover {
   color: var(--seiri-on-accent);
 }
 
-/* ---------- Panele i karty ---------- */
+/* ---------- Panels & cards ---------- */
 .box {
   background-color: var(--seiri-panel);
   border: 1px solid var(--seiri-border);
@@ -124,12 +124,12 @@ a:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
-/* ---------- Formularze ---------- */
+/* ---------- Forms ---------- */
 .field .label {
   color: var(--seiri-text);
 }
 
-/* Wymóg projektu: pola tekstowe są ZAWSZE białe z czarnym tekstem. */
+/* Project requirement: text fields are ALWAYS white with black text. */
 .input,
 .textarea,
 .select select {
@@ -156,7 +156,7 @@ a:hover {
   box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.35) !important;
 }
 
-/* ---------- Tabele ---------- */
+/* ---------- Tables ---------- */
 .table {
   background-color: var(--seiri-panel);
   color: var(--seiri-text);
@@ -177,7 +177,7 @@ a:hover {
   background-color: var(--seiri-hover);
 }
 
-/* ---------- Okruszki (breadcrumb) ---------- */
+/* ---------- Breadcrumb ---------- */
 .breadcrumb a {
   color: var(--seiri-accent);
 }
@@ -185,7 +185,7 @@ a:hover {
   color: var(--seiri-text-dim);
 }
 
-/* ---------- Powiadomienia (flash) ---------- */
+/* ---------- Notifications (flash) ---------- */
 .notification.is-success {
   background-color: #16271f;
   border: 1px solid #2c4a3b;
@@ -209,14 +209,14 @@ a:hover {
   background-color: var(--seiri-text);
 }
 
-/* ---------- Powiadomienie ostrzegawcze ---------- */
+/* ---------- Warning notification ---------- */
 .notification.is-warning {
   background-color: #332a12;
   border: 1px solid #6b5826;
   color: var(--seiri-text);
 }
 
-/* ---------- Tagi statusów ---------- */
+/* ---------- Status tags ---------- */
 .tag.status-tag {
   background-color: rgba(122, 162, 247, 0.16);
   border: 1px solid rgba(122, 162, 247, 0.55);
@@ -224,7 +224,7 @@ a:hover {
   font-weight: 600;
 }
 
-/* ---------- Przycisk niebezpieczny (Usuń status) ---------- */
+/* ---------- Danger button (delete status) ---------- */
 .button.is-danger.is-outlined {
   background-color: transparent;
   border: 1px solid var(--seiri-danger, #f07178);
@@ -236,18 +236,18 @@ a:hover {
   color: #ffd7da;
 }
 
-/* ---------- Zawijanie tekstu (list motywacyjny) ---------- */
+/* ---------- Text wrapping (cover letter) ---------- */
 .pre-wrap {
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-/* ---------- Nowrap (daty / przyciski akcji) ---------- */
+/* ---------- No-wrap (dates / action buttons) ---------- */
 .nowrap {
   white-space: nowrap;
 }
 
-/* ---------- Tagi rekrutacji „szukają kogoś?” ---------- */
+/* ---------- Recruitment tags ("looking for someone?") ---------- */
 .tag.recruitment-tag.looking {
   background-color: rgba(94, 204, 138, 0.16);
   border: 1px solid rgba(94, 204, 138, 0.55);

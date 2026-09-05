@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Admin – SEIRI{% endblock %}
+
+{% block content %}
+{% if mode == 'login' %}
+<div class="columns is-centered">
+  <div class="column is-one-third">
+    <div class="box">
+      <h1 class="title is-4">Admin – Anmeldung</h1>
+      <p class="subtitle">Dieser Bereich ist durch ein Passwort geschützt.</p>
+      <form method="post" action="{{ url_for('admin_login') }}">
+        <div class="field">
+          <label class="label" for="password">Passwort</label>
+          <div class="control">
+            <input class="input" id="password" name="password" type="password" required autofocus>
+          </div>
+        </div>
+        <button class="button is-primary" type="submit">Anmelden</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% else %}
+<h1 class="title">Admin</h1>
+<p class="subtitle">Status, Profil und Einstellungen.</p>
+
+<div class="buttons mb-4">
+  <a class="button is-light" href="{{ url_for('index') }}">Firmenliste</a>
+  {% if enforced %}
+    <form method="post" action="{{ url_for('admin_logout') }}" style="display:inline;">
+      <button class="button is-danger is-outlined" type="submit">Abmelden</button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="buttons mb-4">
+  <a class="button is-small is-light" href="#status">Status</a>
+  <a class="button is-small is-light" href="#profil">Profil</a>
+  <a class="button is-small is-light" href="#passwort">Passwort</a>
+</div>
+
+<div id="status" class="mt-4">
+  <div class="columns">
+    <div class="column is-one-third">
+      <div class="box">
+        <h2 class="title is-5">Status hinzufügen</h2>
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="action" value="add_status">
+          <div class="field">
+            <label class="label" for="name">Name des Status</label>
+            <div class="control">
+              <input class="input" id="name" name="name" type="text"
+                     placeholder="z. B. Bewerbung gesendet…" required>
+            </div>
+          </div>
+          <button class="button is-primary" type="submit">Hinzufügen</button>
+        </form>
+      </div>
+    </div>
+    <div class="column is-two-thirds">
+      <div class="box">
+        <h2 class="title is-5">Vorhandene Status</h2>
+        {% if statuses %}
+        <table class="table is-fullwidth is-hoverable is-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th class="has-text-centered">Anzahl Firmen</th>
+              <th class="has-text-right">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for status in statuses %}
+            <tr>
+              <td><span class="tag status-tag is-medium">{{ status.name }}</span></td>
+              <td class="has-text-centered">{{ status.companies | length }}</td>
+              <td class="has-text-right">
+                <form method="post" action="{{ url_for('admin') }}"
+                      onsubmit="return confirm('Status „{{ status.name }}“ wirklich löschen?');"
+                      style="display:inline;">
+                  <input type="hidden" name="action" value="delete_status">
+                  <input type="hidden" name="status_id" value="{{ status.id }}">
+                  <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="has-text-grey-lighter">Noch kein Status vorhanden.</p>
+        {% endif %}
+
+<div id="profil" class="mt-4">
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="box">
+        <h2 class="title is-5">Mein Profil</h2>
+        <p class="subtitle">Daten für Kopfbereich und Unterschrift des Anschreibens (PDF).</p>
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="action" value="save_profile">
+          <div class="field">
+            <label class="label" for="full_name">Name</label>
+            <div class="control">
+              <input class="input" id="full_name" name="full_name" type="text"
+                     value="{{ profile.full_name or '' }}" placeholder="z. B. Max Mustermann">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="address">Adresse</label>
+            <div class="control">
+              <input class="input" id="address" name="address" type="text"
+                     value="{{ profile.address or '' }}" placeholder="z. B. Musterstraße 1">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="city">Stadt / PLZ</label>
+            <div class="control">
+              <input class="input" id="city" name="city" type="text"
+                     value="{{ profile.city or '' }}" placeholder="z. B. 12345 Musterstadt">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="email">E-Mail</label>
+            <div class="control">
+              <input class="input" id="email" name="email" type="email"
+                     value="{{ profile.email or '' }}">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="phone">Telefon</label>
+            <div class="control">
+              <input class="input" id="phone" name="phone" type="tel"
+                     value="{{ profile.phone or '' }}">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="position">Position / Ausbildungsberuf</label>
+            <div class="control">
+              <input class="input" id="position" name="position" type="text"
+                     value="{{ profile.position or '' }}"
+                     placeholder="Fachinformatiker – Daten und Prozessanalyse">
+            </div>
+          </div>
+          <button class="button is-primary" type="submit">Profil speichern</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="passwort" class="mt-4">
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="box">
+        <h2 class="title is-5">Passwort-Schutz</h2>
+        <p class="subtitle">Wenn das Passwort erforderlich ist, muss es gesetzt sein und der Zugang
+        zum Admin-Bereich erfolgt nur nach Eingabe des Passworts (gehasht gespeichert).</p>
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="action" value="save_password">
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" name="password_required"
+                     {{ 'checked' if settings.password_required }}>
+              Passwort erforderlich
+            </label>
+          </div>
+          <div class="field">
+            <label class="label" for="password">Neues Passwort</label>
+            <div class="control">
+              <input class="input" id="password" name="password" type="password"
+                     placeholder="Mindestens 6 Zeichen">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="password_confirm">Passwort wiederholen</label>
+            <div class="control">
+              <input class="input" id="password_confirm" name="password_confirm" type="password">
+            </div>
+          </div>
+          <button class="button is-primary" type="submit">Einstellungen speichern</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
