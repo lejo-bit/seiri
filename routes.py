@@ -478,13 +478,16 @@ def admin_login():
     settings = _get_settings()
     if not settings.password_hash:
         return redirect(url_for("admin"))
+    next_url = request.form.get("next", "")
     password = request.form.get("password", "")
     if check_password_hash(settings.password_hash, password):
         session["admin_ok"] = True
         flash("Angemeldet.", "success")
-    else:
-        flash("Falsches Passwort.", "error")
-    return redirect(url_for("admin"))
+        if next_url and next_url.startswith("/"):
+            return redirect(next_url)
+        return redirect(url_for("index"))
+    flash("Falsches Passwort.", "error")
+    return render_template("login.html", next_url=next_url)
 
 
 def admin_logout():
@@ -616,6 +619,22 @@ def admin_export():
 # --------------------------------------------------------------------------- #
 def register_routes(app):
     """Register all routes on the application."""
+
+    @app.before_request
+    def _require_login():
+        if request.endpoint in (
+            "static",
+            "admin_login",
+            "admin_logout",
+            "share_list",
+            "share_export",
+        ):
+            return None
+        settings = _get_settings()
+        if _password_enforced(settings) and not _is_authed():
+            return render_template("login.html", next_url=request.full_path)
+        return None
+
     app.add_url_rule("/", view_func=index)
     app.add_url_rule("/companies/new", view_func=new_company, methods=["GET", "POST"])
     app.add_url_rule(

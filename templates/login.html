@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Anmeldung – SEIRI</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          {% set notif_type = 'is-danger' if category == 'error' else 'is-success' %}
+          <div class="notification {{ notif_type }}">
+            <button class="delete"></button>
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <div class="columns is-centered">
+        <div class="column is-one-third">
+          <div class="has-text-centered mb-5">
+            <h1 class="title is-1">整理</h1>
+            <p class="subtitle is-6">Seiri – in Ordnung bringen, ordnen, aufräumen, anordnen, einordnen, regeln, regulieren, sanieren, wiederherstellen, abbauen, konsolidieren, Anordnung, Einordnung, Ordnung, Regelung, Regulierung, Sanierung, Wiederherstellung, Abbau</p>
+          </div>
+          <div class="box">
+            <h2 class="title is-5">Anmeldung</h2>
+            <p class="subtitle">Diese Seite ist durch ein Passwort geschützt.</p>
+            <form method="post" action="{{ url_for('admin_login') }}">
+              <input type="hidden" name="next" value="{{ next_url or '' }}">
+              <div class="field">
+                <label class="label" for="password">Passwort</label>
+                <div class="control">
+                  <input class="input" id="password" name="password" type="password" required autofocus>
+                </div>
+              </div>
+              <button class="button is-primary" type="submit">Anmelden</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script>
+    document.querySelectorAll('.notification .delete').forEach(function (btn) {
+      btn.addEventListener('click', function () { btn.parentElement.remove(); });
+    });
+  </script>
+</body>
+</html>
