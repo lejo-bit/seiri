@@ -67,6 +67,8 @@ for new companies is `unknown`.
   one later from the detail page.
 - `updated_at` is set automatically on insert and on every update (including a
   status change); it backs the „Letzte Änderung“ column and sorting.
+- `job_links` is a one-to-many relationship to `JobLink`; links are removed
+  automatically when the company is deleted.
 
 ### SQL equivalent (SQLite)
 
@@ -90,6 +92,55 @@ CREATE TABLE company (
 );
 ```
 
+## Model: `JobLink`
+
+Represents a **link to a specific job offer** for a company. Maps to the
+table `job_link`. A company can have many links (one-to-many).
+
+| Column       | Type          | Constraints        | Description               |
+|--------------|---------------|--------------------|---------------------------|
+| `id`         | `Integer`     | `PRIMARY KEY`      | Link identifier           |
+| `company_id` | `Integer`     | FK → `company.id`  | Owning company (required) |
+| `url`        | `String(500)` | `NOT NULL`         | The job-offer URL         |
+
+Related records: a `JobLink` belongs to one `Company`
+(`Company.job_links`); links are deleted automatically when the company is
+deleted (`cascade="all, delete-orphan"`).
+
+### SQL equivalent (SQLite)
+
+```sql
+CREATE TABLE job_link (
+    id         INTEGER NOT NULL,
+    company_id INTEGER NOT NULL,
+    url        VARCHAR(500) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY(company_id) REFERENCES company (id)
+);
+```
+
+## Model: `JobSite`
+
+Represents a **standalone internship website/portal** (where companies search
+for interns). Maps to the table `job_site`. It is **not linked to companies**.
+
+| Column | Type          | Constraints   | Description          |
+|--------|---------------|---------------|----------------------|
+| `id`   | `Integer`     | `PRIMARY KEY` | Site identifier      |
+| `name` | `String(120)` | `NOT NULL`    | Site name (required) |
+| `url`  | `String(500)` | `NOT NULL`    | Site URL (required)  |
+
+### SQL equivalent (SQLite)
+
+```sql
+CREATE TABLE job_site (
+    id   INTEGER NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    url  VARCHAR(500) NOT NULL,
+    PRIMARY KEY (id)
+);
+```
+
 ## Model: `Profile`
 
 Holds a single row with **my personal data**, used in the cover letter header
@@ -105,6 +156,18 @@ and signature (PDF). Maps to the table `profile`.
 | `phone`    | `String(40)`  | Phone                           |
 | `position` | `String(200)` | Job title (default: Fachinformatiker – Daten und Prozessanalyse) |
 
+## Model: `Settings`
+
+Holds a single row with **application settings**. Maps to the table `settings`.
+
+| Column              | Type          | Constraints                  | Description                       |
+|---------------------|---------------|------------------------------|-----------------------------------|
+| `id`                | `Integer`     | `PRIMARY KEY` (always `1`)   | Settings identifier               |
+| `password_required` | `Boolean`     | `NOT NULL`, default `False`  | Admin area requires a password    |
+| `password_hash`     | `String(255)` | –                            | Hashed admin password (pbkdf2)    |
+| `share_enabled`     | `Boolean`     | `NOT NULL`, default `False`  | Shared list enabled               |
+| `share_token`       | `String(64)`  | –                            | Secret token for the share link   |
+
 ## ORM mapping
 
 | Python (Flask-SQLAlchemy) | SQL / database         |
@@ -112,7 +175,11 @@ and signature (PDF). Maps to the table `profile`.
 | `Status`                  | table `status`         |
 | `Company`                 | table `company`        |
 | `Profile`                 | table `profile`        |
+| `JobLink`                 | table `job_link`       |
+| `JobSite`                 | table `job_site`       |
+| `Settings`                | table `settings`       |
 | `Company.status`          | FK `status_id` → `status.id` |
+| `Company.job_links`       | one-to-many → `job_link` (cascade delete) |
 | `Company.recruitment_label` | derived from `recruitment` |
 
 ## Connection configuration
