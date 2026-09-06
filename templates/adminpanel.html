@@ -152,6 +152,14 @@
                      placeholder="Fachinformatiker – Daten und Prozessanalyse">
             </div>
           </div>
+          <div class="field">
+            <label class="label" for="cover_letter_template">Anschreiben Muster</label>
+            <div class="control">
+              <textarea class="textarea" id="cover_letter_template" name="cover_letter_template"
+                        rows="8"
+                        placeholder="Dieser Text wird automatisch in jedes neue Anschreiben übernommen.">{{ profile.cover_letter_template or '' }}</textarea>
+            </div>
+          </div>
           <button class="button is-primary" type="submit">Profil speichern</button>
         </form>
       </div>

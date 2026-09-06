@@ -117,6 +117,7 @@ class Profile(db.Model):
     email = db.Column(db.String(120))
     phone = db.Column(db.String(40))
     position = db.Column(db.String(200), default=DEFAULT_POSITION)
+    cover_letter_template = db.Column(db.Text)
 
     def __repr__(self):
         return f"<Profile {self.full_name!r}>"

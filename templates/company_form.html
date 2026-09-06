@@ -132,7 +132,7 @@
           <div class="control">
             <textarea class="textarea" id="cover_letter" name="cover_letter"
                       rows="8"
-                      placeholder="Füge hier den Text des Anschreibens ein, das an dieses Unternehmen gesendet wurde.">{{ (company.cover_letter if company else '') }}</textarea>
+                      placeholder="Füge hier den Text des Anschreibens ein, das an dieses Unternehmen gesendet wurde.">{{ (company.cover_letter if company else cover_letter_template) }}</textarea>
           </div>
         </div>
 

@@ -206,6 +206,8 @@ def new_company():
     if request.method == "POST":
         fields = _fields_from_form()
         _apply_company_form(company, fields)
+        if not company.cover_letter:
+            company.cover_letter = _get_profile().cover_letter_template or ""
         error = _validate_company(fields)
         if error:
             flash(error, "error")
@@ -214,7 +216,13 @@ def new_company():
         db.session.commit()
         flash(f"Firma „{company.name}“ wurde hinzugefügt.", "success")
         return redirect(url_for("company_detail", company_id=company.id))
-    return render_template("company_form.html", company=None, statuses=statuses)
+    profile = _get_profile()
+    return render_template(
+        "company_form.html",
+        company=None,
+        statuses=statuses,
+        cover_letter_template=profile.cover_letter_template or "",
+    )
 
 
 def edit_company(company_id):
@@ -383,6 +391,7 @@ def admin():
             data.email = request.form.get("email", "").strip()
             data.phone = request.form.get("phone", "").strip()
             data.position = request.form.get("position", "").strip() or DEFAULT_POSITION
+            data.cover_letter_template = request.form.get("cover_letter_template", "").strip()
             db.session.commit()
             flash("Profildaten gespeichert.", "success")
         elif action == "save_password":
