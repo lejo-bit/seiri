@@ -9,6 +9,7 @@ Eine Flask-Anwendung **SEIRI – Praktikum** zum Verwalten von Praktikumsbewerbu
 - eine sortierbare Liste (nach Name / Status / letzter Änderung),
 - eine Schaltfläche **„PDF generieren“** — ein sauberes A4-Anschreiben mit den Firmendaten, deinen Daten und dem aktuellen Datum,
 - **mehrere Stellenangebot-Links** pro Firma (exportierbar),
+- eine **Praktikumsseiten**-Seite — eine separate Liste mit Job-Portalen (eigene Tabelle),
 - eine **Teilen**-Funktion: eine nur-lesbare Firmenliste über einen geheimen Link.
 
 Die Oberfläche nutzt das CSS-Framework **Bulma** (dunkles Design). Die Bedienoberfläche ist auf Deutsch.
@@ -51,7 +52,7 @@ Die Anwendung ist dann erreichbar unter: **http://127.0.0.1:5001**
 
 ## Struktur
 
-- `models.py` — Datenbankmodelle (`Status`, `Company`, `Profile`, `Settings`, `JobLink`) — siehe `docs/db_structure.md`
+- `models.py` — Datenbankmodelle (`Status`, `Company`, `Profile`, `Settings`, `JobLink`, `JobSite`) — siehe `docs/db_structure.md`
 - `routes.py` — Anwendungsrouten
 - `run.py` — Application-Factory + Serverstart
 - `startdb.py` — Datenbank-Erstellung / automatische Schema-Aktualisierung
