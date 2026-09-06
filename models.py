@@ -91,6 +91,19 @@ class JobLink(db.Model):
         return f"<JobLink {self.url!r}>"
 
 
+class JobSite(db.Model):
+    """A website/portal where companies search for interns (standalone)."""
+
+    __tablename__ = "job_site"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    url = db.Column(db.String(500), nullable=False)
+
+    def __repr__(self):
+        return f"<JobSite {self.name!r}>"
+
+
 class Profile(db.Model):
     """My personal data (single record, used in the cover letter / PDF)."""
 

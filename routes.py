@@ -25,6 +25,7 @@ from models import (
     RECRUITMENT_LABELS,
     Company,
     JobLink,
+    JobSite,
     Profile,
     Settings,
     Status,
@@ -284,6 +285,34 @@ def delete_job_link(link_id):
     db.session.commit()
     flash("Link gelöscht.", "success")
     return redirect(url_for("company_detail", company_id=company_id))
+
+
+def sites():
+    """List of internship sites (standalone, not linked to companies)."""
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        url = _clean_website(request.form.get("url", ""))
+        if not name or not url:
+            flash("Bitte Name und URL angeben.", "error")
+        else:
+            db.session.add(JobSite(name=name, url=url))
+            db.session.commit()
+            flash("Seite hinzugefügt.", "success")
+        return redirect(url_for("sites"))
+
+    site_list = JobSite.query.order_by(JobSite.name.asc()).all()
+    return render_template("sites.html", sites=site_list)
+
+
+def delete_site(site_id):
+    """Delete an internship site."""
+    site = db.session.get(JobSite, site_id)
+    if site is None:
+        abort(404)
+    db.session.delete(site)
+    db.session.commit()
+    flash("Seite gelöscht.", "success")
+    return redirect(url_for("sites"))
 
 
 # --------------------------------------------------------------------------- #
@@ -574,6 +603,12 @@ def register_routes(app):
     app.add_url_rule(
         "/links/<int:link_id>/delete",
         view_func=delete_job_link,
+        methods=["POST"],
+    )
+    app.add_url_rule("/sites", view_func=sites, methods=["GET", "POST"])
+    app.add_url_rule(
+        "/sites/<int:site_id>/delete",
+        view_func=delete_site,
         methods=["POST"],
     )
     app.add_url_rule("/profile", view_func=profile, methods=["GET", "POST"])
