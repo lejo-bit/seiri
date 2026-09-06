@@ -21,7 +21,11 @@
   <a class="button is-light" href="{{ url_for('index') }}">Zurück zur Liste</a>
   <a class="button is-link" href="{{ url_for('company_pdf', company_id=company.id) }}"
      target="_blank" rel="noopener">PDF generieren</a>
-  <a class="button is-light" href="{{ url_for('admin') }}">Admin</a>
+  <form id="deleteCompanyForm" method="post"
+        action="{{ url_for('delete_company', company_id=company.id) }}"
+        data-name="{{ company.name }}" style="display:inline;">
+    <button class="button is-danger is-outlined" type="submit">Löschen</button>
+  </form>
 </div>
 
 <!-- Edit area – toggled via the "Daten bearbeiten" button -->
@@ -212,6 +216,34 @@
   </tbody>
 </table>
 
+<div class="box mt-4">
+  <h2 class="title is-5">Stellenangebote</h2>
+  {% if company.job_links %}
+    <ul class="mb-3">
+      {% for link in company.job_links %}
+        <li>
+          <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a>
+          <form method="post" action="{{ url_for('delete_job_link', link_id=link.id) }}"
+                style="display:inline; margin-left:0.5rem;">
+            <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="has-text-grey-lighter mb-3">Noch keine Stellenangebote hinterlegt.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('add_job_link', company_id=company.id) }}" class="field has-addons">
+    <div class="control is-expanded">
+      <input class="input" type="text" name="url"
+             placeholder="https://firma.de/jobs/123" required>
+    </div>
+    <div class="control">
+      <button class="button is-primary" type="submit">Hinzufügen</button>
+    </div>
+  </form>
+</div>
+
 <div class="columns">
   <div class="column is-half">
     <div class="box">
@@ -273,6 +305,16 @@
       toggle(panel.style.display === 'none');
     });
     if (cancelBtn) cancelBtn.addEventListener('click', function () { toggle(false); });
+
+    var deleteForm = document.getElementById('deleteCompanyForm');
+    if (deleteForm) {
+      deleteForm.addEventListener('submit', function (event) {
+        var name = deleteForm.getAttribute('data-name') || '';
+        if (!window.confirm('Firma „' + name + '“ wirklich löschen?')) {
+          event.preventDefault();
+        }
+      });
+    }
   })();
 </script>
 {% endblock %}

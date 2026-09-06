@@ -1,10 +1,15 @@
 """SEIRI application routes — split out for readability."""
+import csv
 import datetime
+import io
 import os
+import secrets
 
 from fpdf import FPDF
+from sqlalchemy.orm import selectinload
 from flask import (
     Response,
+    abort,
     flash,
     redirect,
     render_template,
@@ -19,6 +24,7 @@ from models import (
     RECRUITMENT_DEFAULT,
     RECRUITMENT_LABELS,
     Company,
+    JobLink,
     Profile,
     Settings,
     Status,
@@ -52,6 +58,17 @@ def _clean_recruitment(value):
     return value if value in RECRUITMENT_LABELS else RECRUITMENT_DEFAULT
 
 
+def _clean_website(value):
+    """Normalise the website URL so only http(s) schemes are stored
+    (prevents XSS via javascript:/data: URLs)."""
+    value = value.strip()
+    if not value:
+        return ""
+    if value.lower().startswith(("http://", "https://")):
+        return value
+    return "https://" + value
+
+
 def _apply_company_form(company, fields):
     """Apply the form fields to the Company object."""
     company.name = fields["name"]
@@ -61,7 +78,7 @@ def _apply_company_form(company, fields):
     company.email = fields["email"]
     company.phone = fields["phone"]
     company.description = fields["description"]
-    company.website = fields["website"]
+    company.website = _clean_website(fields["website"])
     company.cover_letter = fields["cover_letter"]
     company.status_id = fields["status_id"]
     company.recruitment = _clean_recruitment(fields["recruitment"])
@@ -107,28 +124,68 @@ def _is_authed():
     return session.get("admin_ok") is True
 
 
+def _ordered_companies():
+    """All companies ordered by name, with their status and links loaded."""
+    return (
+        Company.query.options(selectinload(Company.job_links))
+        .outerjoin(Status, Company.status_id == Status.id)
+        .order_by(Company.name.asc())
+        .all()
+    )
+
+
+def _companies_csv():
+    """Build a CSV (semicolon-separated, UTF-8 with BOM) of all companies."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(
+        ["Name", "Adresse", "Adresse 2", "Stadt", "E-Mail", "Telefon", "Website", "Stellenangebote", "Status", "Sucht?"]
+    )
+    for company in _ordered_companies():
+        links = " | ".join(link.url for link in company.job_links)
+        writer.writerow(
+            [
+                company.name or "",
+                company.address or "",
+                company.address2 or "",
+                company.city or "",
+                company.email or "",
+                company.phone or "",
+                company.website or "",
+                links,
+                company.status.name if company.status else "",
+                company.recruitment_label or "",
+            ]
+        )
+    data = "\ufeff" + buf.getvalue()
+    return Response(
+        data,
+        mimetype="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="unternehmen.csv"'},
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Company
 # --------------------------------------------------------------------------- #
 def index():
     sort = request.args.get("sort", "updated")
     direction = request.args.get("dir", "desc")
-    recruitment = request.args.get("rec", "").strip()
-    if sort not in ("name", "status", "updated"):
+    q = request.args.get("q", "").strip()
+    if sort not in ("name", "status", "updated", "recruitment"):
         sort = "updated"
     if direction not in ("asc", "desc"):
         direction = "desc"
-    if recruitment not in ("", "looking", "not_looking", "unknown"):
-        recruitment = ""
 
     order_cols = {
         "name": Company.name,
         "status": Status.name,
         "updated": Company.updated_at,
+        "recruitment": Company.recruitment,
     }
     query = Company.query.outerjoin(Status, Company.status_id == Status.id)
-    if recruitment:
-        query = query.filter(Company.recruitment == recruitment)
+    if q:
+        query = query.filter(Company.name.ilike(f"%{q}%"))
     column = order_cols[sort]
     companies = query.order_by(
         column.asc() if direction == "asc" else column.desc()
@@ -138,7 +195,7 @@ def index():
         companies=companies,
         sort=sort,
         direction=direction,
-        recruitment=recruitment,
+        q=q,
     )
 
 
@@ -192,6 +249,41 @@ def change_status(company_id):
     db.session.commit()
     flash(f"Status der Firma geändert auf „{status.name}“.", "success")
     return redirect(url_for("company_detail", company_id=company.id))
+
+
+def delete_company(company_id):
+    """Delete a company (POST, from the detail page)."""
+    company = Company.query.get_or_404(company_id)
+    name = company.name
+    db.session.delete(company)
+    db.session.commit()
+    flash(f"Firma „{name}“ wurde gelöscht.", "success")
+    return redirect(url_for("index"))
+
+
+def add_job_link(company_id):
+    """Add a job-offer link to a company."""
+    company = Company.query.get_or_404(company_id)
+    url = _clean_website(request.form.get("url", ""))
+    if not url:
+        flash("Bitte eine gültige URL angeben.", "error")
+        return redirect(url_for("company_detail", company_id=company.id))
+    db.session.add(JobLink(company_id=company.id, url=url))
+    db.session.commit()
+    flash("Link hinzugefügt.", "success")
+    return redirect(url_for("company_detail", company_id=company.id))
+
+
+def delete_job_link(link_id):
+    """Delete a job-offer link."""
+    link = db.session.get(JobLink, link_id)
+    if link is None:
+        abort(404)
+    company_id = link.company_id
+    db.session.delete(link)
+    db.session.commit()
+    flash("Link gelöscht.", "success")
+    return redirect(url_for("company_detail", company_id=company_id))
 
 
 # --------------------------------------------------------------------------- #
@@ -265,6 +357,16 @@ def admin():
             flash("Profildaten gespeichert.", "success")
         elif action == "save_password":
             _handle_password_form(settings)
+        elif action == "save_share":
+            settings.share_enabled = request.form.get("share_enabled") is not None
+            if settings.share_enabled and not settings.share_token:
+                settings.share_token = secrets.token_hex(16)
+            db.session.commit()
+            flash("Teilen-Einstellungen gespeichert.", "success")
+        elif action == "regenerate_token":
+            settings.share_token = secrets.token_hex(16)
+            db.session.commit()
+            flash("Neuer Link erstellt. Der alte Link funktioniert nicht mehr.", "success")
         return redirect(url_for("admin"))
 
     if enforced and not _is_authed():
@@ -410,6 +512,37 @@ def company_pdf(company_id):
 
 
 # --------------------------------------------------------------------------- #
+# Shared, read-only company list (no password, just a secret link)
+# --------------------------------------------------------------------------- #
+def share_list(token):
+    """Read-only list of companies, reachable via a secret token."""
+    settings = _get_settings()
+    if not settings.share_enabled or not settings.share_token or settings.share_token != token:
+        abort(404)
+    return render_template(
+        "share.html",
+        companies=_ordered_companies(),
+        token=token,
+    )
+
+
+def share_export(token):
+    """CSV export for the shared list (same token gate)."""
+    settings = _get_settings()
+    if not settings.share_enabled or not settings.share_token or settings.share_token != token:
+        abort(404)
+    return _companies_csv()
+
+
+def admin_export():
+    """CSV export for the admin (requires login when password is enforced)."""
+    settings = _get_settings()
+    if _password_enforced(settings) and not _is_authed():
+        return redirect(url_for("admin"))
+    return _companies_csv()
+
+
+# --------------------------------------------------------------------------- #
 # Route registration
 # --------------------------------------------------------------------------- #
 def register_routes(app):
@@ -428,11 +561,29 @@ def register_routes(app):
         view_func=change_status,
         methods=["POST"],
     )
+    app.add_url_rule(
+        "/companies/<int:company_id>/delete",
+        view_func=delete_company,
+        methods=["POST"],
+    )
+    app.add_url_rule(
+        "/companies/<int:company_id>/links",
+        view_func=add_job_link,
+        methods=["POST"],
+    )
+    app.add_url_rule(
+        "/links/<int:link_id>/delete",
+        view_func=delete_job_link,
+        methods=["POST"],
+    )
     app.add_url_rule("/profile", view_func=profile, methods=["GET", "POST"])
     app.add_url_rule("/statuses", view_func=statuses, methods=["GET", "POST"])
     app.add_url_rule("/admin", view_func=admin, methods=["GET", "POST"])
     app.add_url_rule("/admin/login", view_func=admin_login, methods=["POST"])
     app.add_url_rule("/admin/logout", view_func=admin_logout, methods=["POST"])
+    app.add_url_rule("/share/<token>", view_func=share_list)
+    app.add_url_rule("/share/<token>/export.csv", view_func=share_export)
+    app.add_url_rule("/admin/export.csv", view_func=admin_export)
 
 
 

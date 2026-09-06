@@ -7,40 +7,30 @@
   <div class="hero-body">
     <p class="title">SEIRI – Praktikumsbewerbungen</p>
     <p class="subtitle">Verwaltung deiner Bewerbungen für das Praktikum</p>
-    <div class="buttons">
-      <a class="button is-primary" href="{{ url_for('new_company') }}">Firma hinzufügen</a>
-      <a class="button is-light" href="{{ url_for('admin') }}">Admin</a>
-    </div>
   </div>
 </section>
 
 <div class="block mt-5">
   <h2 class="title is-4">Firmenliste</h2>
   <p class="has-text-grey-lighter is-size-7 mb-3">
-    Klicke auf eine Spaltenüberschrift, um zu sortieren (Name / Status / letzte Änderung).
+    Klicke auf eine Spaltenüberschrift, um zu sortieren (Name / Status / Suche? / letzte Änderung).
   </p>
 
   <form method="get" action="{{ url_for('index') }}" class="field is-grouped mb-4">
     <input type="hidden" name="sort" value="{{ sort }}">
     <input type="hidden" name="dir" value="{{ direction }}">
-    <div class="control">
-      <div class="select">
-        <select name="rec" aria-label="Nach Suche filtern">
-          <option value="" {{ 'selected' if not recruitment }}>Suche? – Alle</option>
-          <option value="looking" {{ 'selected' if recruitment == 'looking' }}>sucht</option>
-          <option value="not_looking" {{ 'selected' if recruitment == 'not_looking' }}>sucht nicht</option>
-          <option value="unknown" {{ 'selected' if recruitment == 'unknown' }}>unbekannt</option>
-        </select>
-      </div>
-    </div>
-    <div class="control">
-      <button class="button is-primary" type="submit">Filtern</button>
-    </div>
-    {% if recruitment %}
-      <div class="control">
+    <p class="control is-expanded">
+      <input class="input" type="search" name="q" value="{{ q }}"
+             placeholder="Firma suchen…" aria-label="Firma suchen">
+    </p>
+    <p class="control">
+      <button class="button is-primary" type="submit">Suchen</button>
+    </p>
+    {% if q %}
+      <p class="control">
         <a class="button is-light"
            href="{{ url_for('index', sort=sort, dir=direction) }}">Zurücksetzen</a>
-      </div>
+      </p>
     {% endif %}
   </form>
 
@@ -49,19 +39,23 @@
       <thead>
         <tr>
           <th>
-            <a href="{{ url_for('index', sort='name', dir='desc' if (sort == 'name' and direction == 'asc') else 'asc') }}">
+            <a href="{{ url_for('index', sort='name', q=q, dir='desc' if (sort == 'name' and direction == 'asc') else 'asc') }}">
               Name{% if sort == 'name' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
             </a>
           </th>
           <th>
-            <a href="{{ url_for('index', sort='status', dir='desc' if (sort == 'status' and direction == 'asc') else 'asc') }}">
+            <a href="{{ url_for('index', sort='status', q=q, dir='desc' if (sort == 'status' and direction == 'asc') else 'asc') }}">
               Status{% if sort == 'status' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
             </a>
           </th>
-          <th>Suche?</th>
+          <th>
+            <a href="{{ url_for('index', sort='recruitment', q=q, dir='desc' if (sort == 'recruitment' and direction == 'asc') else 'asc') }}">
+              Suche?{% if sort == 'recruitment' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
+            </a>
+          </th>
           <th>E-Mail</th>
           <th>
-            <a href="{{ url_for('index', sort='updated', dir='asc' if (sort == 'updated' and direction == 'desc') else 'desc') }}">
+            <a href="{{ url_for('index', sort='updated', q=q, dir='asc' if (sort == 'updated' and direction == 'desc') else 'desc') }}">
               Letzte Änderung{% if sort == 'updated' %}{{ ' ▼' if direction == 'desc' else ' ▲' }}{% endif %}
             </a>
           </th>
@@ -102,6 +96,13 @@
         {% endfor %}
       </tbody>
     </table>
+  {% elif q %}
+    <div class="notification is-info">
+      <p>Keine Firmen gefunden für „{{ q }}“.</p>
+      <p class="mt-2">
+        <a class="button is-light" href="{{ url_for('index') }}">Suche zurücksetzen</a>
+      </p>
+    </div>
   {% else %}
     <div class="notification is-info">
       <p>Noch keine Firma hinzugefügt.</p>

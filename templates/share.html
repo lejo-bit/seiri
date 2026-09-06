@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unternehmensliste – SEIRI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  <section class="section">
+    <div class="container">
+      <h1 class="title">Unternehmensliste</h1>
+      <p class="subtitle">Gespeicherte Firmen und deren Bewerbungsstatus.</p>
+
+      <div class="buttons mb-4">
+        <a class="button is-primary" href="{{ url_for('share_export', token=token) }}">Export (CSV)</a>
+      </div>
+
+      {% if companies %}
+      <table class="table is-fullwidth is-hoverable is-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Adresse</th>
+            <th>Stadt</th>
+            <th>E-Mail</th>
+            <th>Telefon</th>
+            <th>Website</th>
+            <th>Stellenangebote</th>
+            <th>Status</th>
+            <th>Sucht?</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for company in companies %}
+          <tr>
+            <td class="has-text-weight-medium">{{ company.name }}</td>
+            <td>
+              {% if company.address or company.address2 %}
+                {{ company.address or '' }}{% if company.address and company.address2 %}, {% endif %}{{ company.address2 or '' }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>{{ company.city or '—' }}</td>
+            <td>{{ company.email or '—' }}</td>
+            <td>{{ company.phone or '—' }}</td>
+            <td>{{ company.website or '—' }}</td>
+            <td>
+              {% if company.job_links %}
+                {% for link in company.job_links %}
+                  <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a>{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if company.status %}
+                <span class="tag status-tag">{{ company.status.name }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              <span class="tag recruitment-tag {{ 'looking' if company.recruitment == 'looking' else ('no' if company.recruitment == 'not_looking' else 'unknown') }}">
+                {{ company.recruitment_label }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="has-text-grey-lighter">Noch keine Firmen vorhanden.</p>
+      {% endif %}
+    </div>
+  </section>
+</body>
+</html>

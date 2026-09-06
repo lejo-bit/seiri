@@ -265,3 +265,32 @@ a:hover {
 }
 
 
+/* ---------- Admin tabs ---------- */
+.tabs ul {
+  border-bottom-color: var(--seiri-border);
+}
+.tabs a {
+  color: var(--seiri-text-dim);
+  border-bottom-color: var(--seiri-border);
+}
+.tabs a:hover {
+  color: var(--seiri-text);
+  border-bottom-color: var(--seiri-border);
+}
+.tabs li.is-active a {
+  color: var(--seiri-accent);
+  border-bottom-color: var(--seiri-accent);
+}
+.tabs.is-boxed a {
+  background-color: transparent;
+  border: 1px solid var(--seiri-border);
+}
+.tabs.is-boxed a:hover {
+  background-color: var(--seiri-panel-2);
+}
+.tabs.is-boxed li.is-active a {
+  background-color: var(--seiri-panel-2);
+  border-color: var(--seiri-border);
+  border-bottom-color: transparent;
+  color: var(--seiri-accent);
+}

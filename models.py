@@ -61,6 +61,12 @@ class Company(db.Model):
     )
 
     status = db.relationship("Status", back_populates="companies")
+    job_links = db.relationship(
+        "JobLink",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        order_by="JobLink.id",
+    )
 
     @property
     def recruitment_label(self):
@@ -68,6 +74,21 @@ class Company(db.Model):
 
     def __repr__(self):
         return f"<Company {self.name!r}>"
+
+
+class JobLink(db.Model):
+    """A link to a specific job offer for a company."""
+
+    __tablename__ = "job_link"
+
+    id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=False)
+    url = db.Column(db.String(500), nullable=False)
+
+    company = db.relationship("Company", back_populates="job_links")
+
+    def __repr__(self):
+        return f"<JobLink {self.url!r}>"
 
 
 class Profile(db.Model):
@@ -95,5 +116,7 @@ class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     password_required = db.Column(db.Boolean, nullable=False, default=False)
     password_hash = db.Column(db.String(255))
+    share_enabled = db.Column(db.Boolean, nullable=False, default=False)
+    share_token = db.Column(db.String(64))
 
 

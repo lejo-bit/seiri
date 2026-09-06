@@ -6,8 +6,12 @@
 {% if mode == 'login' %}
 <div class="columns is-centered">
   <div class="column is-one-third">
+    <div class="has-text-centered mb-5">
+      <h1 class="title is-1">整理</h1>
+      <p class="subtitle is-6">Seiri – in Ordnung bringen, ordnen, aufräumen, anordnen, einordnen, regeln, regulieren, sanieren, wiederherstellen, abbauen, konsolidieren, Anordnung, Einordnung, Ordnung, Regelung, Regulierung, Sanierung, Wiederherstellung, Abbau</p>
+    </div>
     <div class="box">
-      <h1 class="title is-4">Admin – Anmeldung</h1>
+      <h2 class="title is-5">Admin – Anmeldung</h2>
       <p class="subtitle">Dieser Bereich ist durch ein Passwort geschützt.</p>
       <form method="post" action="{{ url_for('admin_login') }}">
         <div class="field">
@@ -25,22 +29,16 @@
 <h1 class="title">Admin</h1>
 <p class="subtitle">Status, Profil und Einstellungen.</p>
 
-<div class="buttons mb-4">
-  <a class="button is-light" href="{{ url_for('index') }}">Firmenliste</a>
-  {% if enforced %}
-    <form method="post" action="{{ url_for('admin_logout') }}" style="display:inline;">
-      <button class="button is-danger is-outlined" type="submit">Abmelden</button>
-    </form>
-  {% endif %}
+<div class="tabs is-boxed" id="adminTabs">
+  <ul>
+    <li class="is-active"><a href="#" data-tab="status">Status</a></li>
+    <li><a href="#" data-tab="profil">Profil</a></li>
+    <li><a href="#" data-tab="passwort">Passwort</a></li>
+    <li><a href="#" data-tab="teilen">Teilen</a></li>
+  </ul>
 </div>
 
-<div class="buttons mb-4">
-  <a class="button is-small is-light" href="#status">Status</a>
-  <a class="button is-small is-light" href="#profil">Profil</a>
-  <a class="button is-small is-light" href="#passwort">Passwort</a>
-</div>
-
-<div id="status" class="mt-4">
+<div class="admin-panel mt-4" id="status" data-tab="status">
   <div class="columns">
     <div class="column is-one-third">
       <div class="box">
@@ -91,8 +89,12 @@
         {% else %}
         <p class="has-text-grey-lighter">Noch kein Status vorhanden.</p>
         {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 
-<div id="profil" class="mt-4">
+<div class="admin-panel is-hidden mt-4" id="profil" data-tab="profil">
   <div class="columns is-centered">
     <div class="column is-half">
       <div class="box">
@@ -150,7 +152,7 @@
   </div>
 </div>
 
-<div id="passwort" class="mt-4">
+<div class="admin-panel is-hidden mt-4" id="passwort" data-tab="passwort">
   <div class="columns is-centered">
     <div class="column is-half">
       <div class="box">
@@ -185,6 +187,80 @@
     </div>
   </div>
 </div>
+
+<div class="admin-panel is-hidden mt-4" id="teilen" data-tab="teilen">
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="box">
+        <h2 class="title is-5">Teilen</h2>
+        <p class="subtitle">Erstelle einen geheimen Link, über den andere deine
+        Firmenliste einsehen und als CSV herunterladen können.</p>
+
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="action" value="save_share">
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" name="share_enabled"
+                     {{ 'checked' if settings.share_enabled }}>
+              Teilen aktivieren
+            </label>
+          </div>
+          <button class="button is-primary" type="submit">Einstellungen speichern</button>
+        </form>
+
+        {% if settings.share_enabled and settings.share_token %}
+        <hr>
+        <div class="field">
+          <label class="label">Teilen-Link</label>
+          <div class="control">
+            <input class="input" type="text" readonly
+                   value="{{ url_for('share_list', token=settings.share_token, _external=True) }}">
+          </div>
+        </div>
+        <div class="buttons">
+          <form method="post" action="{{ url_for('admin') }}" style="display:inline;">
+            <input type="hidden" name="action" value="regenerate_token">
+            <button class="button is-light is-small" type="submit">Link neu generieren</button>
+          </form>
+          <a class="button is-light is-small"
+             href="{{ url_for('admin_export') }}">CSV exportieren (für dich)</a>
+        </div>
+        <p class="has-text-grey-lighter is-size-7">Der Link ist nicht passwortgeschützt.
+        Jeder, der den Link hat, sieht die Liste.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var tabs = document.querySelectorAll('#adminTabs [data-tab]');
+  var panels = document.querySelectorAll('.admin-panel[data-tab]');
+
+  function activate(name) {
+    tabs.forEach(function (tab) {
+      tab.parentElement.classList.toggle('is-active', tab.getAttribute('data-tab') === name);
+    });
+    panels.forEach(function (panel) {
+      panel.classList.toggle('is-hidden', panel.getAttribute('data-tab') !== name);
+    });
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function (event) {
+      event.preventDefault();
+      var name = tab.getAttribute('data-tab');
+      activate(name);
+      try { localStorage.setItem('seiriAdminTab', name); } catch (err) {}
+    });
+  });
+
+  var saved = null;
+  try { saved = localStorage.getItem('seiriAdminTab'); } catch (err) {}
+  activate(saved || 'status');
+})();
+</script>
 
 {% endif %}
 {% endblock %}

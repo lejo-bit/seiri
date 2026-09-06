@@ -24,6 +24,15 @@
         <a class="navbar-item" href="{{ url_for('new_company') }}">Firma hinzufügen</a>
         <a class="navbar-item" href="{{ url_for('admin') }}">Admin</a>
       </div>
+      <div class="navbar-end">
+        {% if session.get('admin_ok') %}
+        <div class="navbar-item">
+          <form method="post" action="{{ url_for('admin_logout') }}" style="display:inline;">
+            <button class="button is-danger is-outlined is-small" type="submit">Abmelden</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
     </div>
   </nav>
 
