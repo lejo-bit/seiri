@@ -494,9 +494,11 @@ def company_pdf(company_id):
     pdf.set_font("inter", "", 10)
     if company.address:
         pdf.cell(0, 5, company.address, new_x="LMARGIN", new_y="NEXT")
-    if company.address2:
+    if company.address2 and company.city:
+        pdf.cell(0, 5, f"{company.address2}, {company.city}", new_x="LMARGIN", new_y="NEXT")
+    elif company.address2:
         pdf.cell(0, 5, company.address2, new_x="LMARGIN", new_y="NEXT")
-    if company.city:
+    elif company.city:
         pdf.cell(0, 5, company.city, new_x="LMARGIN", new_y="NEXT")
     pdf.ln(8)
 
