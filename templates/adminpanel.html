@@ -101,7 +101,6 @@
         <h2 class="title is-5">Mein Profil</h2>
         <p class="subtitle">Daten für Kopfbereich und Unterschrift des Anschreibens (PDF).</p>
         <form method="post" action="{{ url_for('admin') }}">
-          <input type="hidden" name="action" value="save_profile">
           <div class="field">
             <label class="label" for="full_name">Name</label>
             <div class="control">
@@ -160,7 +159,11 @@
                         placeholder="Dieser Text wird automatisch in jedes neue Anschreiben übernommen.">{{ profile.cover_letter_template or '' }}</textarea>
             </div>
           </div>
-          <button class="button is-primary" type="submit">Profil speichern</button>
+          <div class="buttons">
+            <button class="button is-primary" type="submit" name="action" value="save_profile">Profil speichern</button>
+            <button class="button is-warning" type="submit" name="action" value="apply_template"
+                    onclick="return confirm('Anschreiben-Muster auf ALLE Firmen anwenden? Bestehende Anschreiben werden überschrieben.');">Auf alle Firmen anwenden</button>
+          </div>
         </form>
       </div>
     </div>

@@ -394,6 +394,18 @@ def admin():
             data.cover_letter_template = request.form.get("cover_letter_template", "").strip()
             db.session.commit()
             flash("Profildaten gespeichert.", "success")
+        elif action == "apply_template":
+            template = request.form.get("cover_letter_template", "").strip()
+            if not template:
+                flash("Bitte zuerst ein Anschreiben-Muster eingeben.", "error")
+            else:
+                data = _get_profile()
+                data.cover_letter_template = template
+                companies = Company.query.all()
+                for company in companies:
+                    company.cover_letter = template
+                db.session.commit()
+                flash(f"Anschreiben-Muster auf {len(companies)} Firmen angewendet.", "success")
         elif action == "save_password":
             _handle_password_form(settings)
         elif action == "save_share":
