@@ -140,7 +140,7 @@ def _companies_csv():
     buf = io.StringIO()
     writer = csv.writer(buf, delimiter=";", quoting=csv.QUOTE_MINIMAL)
     writer.writerow(
-        ["Name", "Adresse", "Adresse 2", "Stadt", "E-Mail", "Telefon", "Website", "Stellenangebote", "Status", "Sucht?"]
+        ["Name", "Adresse", "PLZ", "Stadt", "E-Mail", "Telefon", "Website", "Stellenangebote", "Status", "Sucht?"]
     )
     for company in _ordered_companies():
         links = " | ".join(link.url for link in company.job_links)
@@ -506,7 +506,7 @@ def company_pdf(company_id):
     if company.address:
         pdf.cell(0, 5, company.address, new_x="LMARGIN", new_y="NEXT")
     if company.address2 and company.city:
-        pdf.cell(0, 5, f"{company.address2}, {company.city}", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 5, f"{company.address2} {company.city}", new_x="LMARGIN", new_y="NEXT")
     elif company.address2:
         pdf.cell(0, 5, company.address2, new_x="LMARGIN", new_y="NEXT")
     elif company.city:

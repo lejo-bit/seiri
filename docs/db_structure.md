@@ -41,7 +41,7 @@ Maps to the table `company`.
 | `id`           | `Integer`     | `PRIMARY KEY`, AUTOINC  | Company identifier                        |
 | `name`         | `String(120)` | `NOT NULL`              | Company name (required)                   |
 | `address`      | `String(200)` | –                       | Address line 1                            |
-| `address2`     | `String(200)` | –                       | Address line 2                            |
+| `address2`     | `String(200)` | –                       | PLZ (postal code)                            |
 | `city`         | `String(120)` | –                       | City / postcode                           |
 | `email`        | `String(120)` | –                       | Company e-mail                            |
 | `phone`        | `String(40)`  | –                       | Phone number                              |

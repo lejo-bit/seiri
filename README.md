@@ -65,7 +65,7 @@ Die Anwendung ist dann erreichbar unter: **http://127.0.0.1:5001**
 
 Im Admin-Bereich erstellt der Tab **„Teilen“** einen geheimen, nicht erratbaren Link (`/share/<token>`), der eine nur-lesbare Liste aller Firmen zeigt (Name, Adresse, Status, „Sucht?“) — inklusive Schaltfläche zum CSV-Export. Der Link ist **nicht passwortgeschützt** — jeder, der den Link hat, sieht die Liste. Erstelle daher einen neuen Link, wenn du den Zugriff widerrufen möchtest.
 
-Der CSV-Export (immer die gesamte Liste auf einmal) enthält: Name, Adresse, Adresse 2, Stadt, E-Mail, Telefon, Website, Stellenangebote, Status, Sucht?.
+Der CSV-Export (immer die gesamte Liste auf einmal) enthält: Name, Adresse, PLZ, Stadt, E-Mail, Telefon, Website, Stellenangebote, Status, Sucht?.
 
 ## Auf einem eigenen VPS-Server installieren
 
