@@ -18,6 +18,8 @@ from flask import (
     url_for,
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from models import (
     DEFAULT_POSITION,
@@ -33,6 +35,9 @@ from models import (
 )
 
 FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "fonts")
+
+# Rate limiter (in-memory storage is fine for a single-process waitress deployment).
+limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 
 
 # --------------------------------------------------------------------------- #
@@ -137,6 +142,16 @@ def _ordered_companies():
     )
 
 
+def _csv_safe(value):
+    """Neutralise values that spreadsheet apps could interpret as formulas."""
+    if value is None:
+        return ""
+    value = str(value)
+    if value.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + value
+    return value
+
+
 def _companies_csv():
     """Build a CSV (semicolon-separated, UTF-8 with BOM) of all companies."""
     buf = io.StringIO()
@@ -148,16 +163,16 @@ def _companies_csv():
         links = " | ".join(link.url for link in company.job_links)
         writer.writerow(
             [
-                company.name or "",
-                company.address or "",
-                company.address2 or "",
-                company.city or "",
-                company.email or "",
-                company.phone or "",
-                company.website or "",
-                links,
-                company.status.name if company.status else "",
-                company.recruitment_label or "",
+                _csv_safe(company.name),
+                _csv_safe(company.address),
+                _csv_safe(company.address2),
+                _csv_safe(company.city),
+                _csv_safe(company.email),
+                _csv_safe(company.phone),
+                _csv_safe(company.website),
+                _csv_safe(links),
+                _csv_safe(company.status.name) if company.status else "",
+                _csv_safe(company.recruitment_label),
             ]
         )
     data = "\ufeff" + buf.getvalue()
@@ -465,8 +480,8 @@ def _handle_password_form(settings):
         if pw != confirm:
             flash("Die Passwörter stimmen nicht überein.", "error")
             return
-        if len(pw) < 6:
-            flash("Das Passwort muss mindestens 6 Zeichen haben.", "error")
+        if len(pw) < 12:
+            flash("Das Passwort muss mindestens 12 Zeichen haben.", "error")
             return
         settings.password_hash = generate_password_hash(pw, method="pbkdf2:sha256")
     settings.password_required = True
@@ -474,6 +489,7 @@ def _handle_password_form(settings):
     flash("Einstellungen gespeichert.", "success")
 
 
+@limiter.limit("5 per minute")
 def admin_login():
     settings = _get_settings()
     if not settings.password_hash:
@@ -481,9 +497,10 @@ def admin_login():
     next_url = request.form.get("next", "")
     password = request.form.get("password", "")
     if check_password_hash(settings.password_hash, password):
+        session.clear()  # avoid session fixation
         session["admin_ok"] = True
         flash("Angemeldet.", "success")
-        if next_url and next_url.startswith("/"):
+        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
             return redirect(next_url)
         return redirect(url_for("index"))
     flash("Falsches Passwort.", "error")

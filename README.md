@@ -96,13 +96,25 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-### 4. Secret-Key setzen (empfohlen)
+### 4. Secret-Key & Sicherheitsoptionen setzen (empfohlen)
 
 ```bash
 sudo bash -c 'echo "SECRET_KEY=$(openssl rand -hex 32)" > /etc/seiri.env'
+sudo bash -c 'echo "SEIRI_SECURE_COOKIES=1" >> /etc/seiri.env'
+sudo bash -c 'echo "BEHIND_PROXY=1" >> /etc/seiri.env'
+sudo chmod 600 /etc/seiri.env
 ```
 
-> Ohne gesetzten `SECRET_KEY` erzeugt die Anwendung beim ersten Start automatisch einen zufälligen Schlüssel und speichert ihn in `instance/secret_key`.
+- `SEIRI_SECURE_COOKIES=1` — Sitzungscookies nur über HTTPS senden (aktivieren, sobald HTTPS läuft, siehe Schritt 7).
+- `BEHIND_PROXY=1` — nginx als Reverse-Proxy berücksichtigen (echte Client-IP und `https`-Schema für den Teilen-Link).
+- Ohne gesetzten `SECRET_KEY` erzeugt die Anwendung beim ersten Start automatisch einen zufälligen Schlüssel und speichert ihn in `instance/secret_key`.
+
+Datenbank- und Schlüsseldatei absichern (enthalten persönliche Daten):
+
+```bash
+sudo chmod 700 /opt/seiri/instance
+sudo chmod 600 /opt/seiri/instance/seiri.db /opt/seiri/instance/secret_key
+```
 
 ### 5. Systemd-Dienst
 
@@ -142,6 +154,16 @@ server {
     listen 80;
     server_name deine-domain.de;
 
+    # Teilen-Links nicht loggen (geheimes Token steht in der URL)
+    location /share/ {
+        access_log off;
+        proxy_pass http://127.0.0.1:5001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location / {
         proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host $host;
@@ -166,6 +188,16 @@ sudo systemctl reload nginx
 sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d deine-domain.de
 ```
+
+Danach HSTS aktivieren (im `server { … }`-Block für Port 443 der nginx-Konfiguration):
+
+```nginx
+add_header Strict-Transport-Security "max-age=31536000" always;
+```
+
+> Debug-Modus niemals aktivieren: Der Produktivbetrieb läuft über `waitress-serve`
+> (siehe Schritt 5). `FLASK_DEBUG=1` bzw. `python run.py` ist nur für die lokale
+> Entwicklung gedacht — der Werkzeug-Debugger darf nie öffentlich erreichbar sein.
 
 ### 8. Firewall (optional)
 

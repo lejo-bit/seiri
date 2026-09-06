@@ -14,6 +14,7 @@
       <h2 class="title is-5">Admin – Anmeldung</h2>
       <p class="subtitle">Dieser Bereich ist durch ein Passwort geschützt.</p>
       <form method="post" action="{{ url_for('admin_login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field">
           <label class="label" for="password">Passwort</label>
           <div class="control">
@@ -44,6 +45,7 @@
       <div class="box">
         <h2 class="title is-5">Status hinzufügen</h2>
         <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="add_status">
           <div class="field">
             <label class="label" for="name">Name des Status</label>
@@ -75,8 +77,9 @@
               <td class="has-text-centered">{{ status.companies | length }}</td>
               <td class="has-text-right">
                 <form method="post" action="{{ url_for('admin') }}"
-                      onsubmit="return confirm('Status „{{ status.name }}“ wirklich löschen?');"
+                      class="delete-status-form" data-name="{{ status.name }}"
                       style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="delete_status">
                   <input type="hidden" name="status_id" value="{{ status.id }}">
                   <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>
@@ -101,6 +104,7 @@
         <h2 class="title is-5">Mein Profil</h2>
         <p class="subtitle">Daten für Kopfbereich und Unterschrift des Anschreibens (PDF).</p>
         <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="field">
             <label class="label" for="full_name">Name</label>
             <div class="control">
@@ -178,6 +182,7 @@
         <p class="subtitle">Wenn das Passwort erforderlich ist, muss es gesetzt sein und der Zugang
         zum Admin-Bereich erfolgt nur nach Eingabe des Passworts (gehasht gespeichert).</p>
         <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="save_password">
           <div class="field">
             <label class="checkbox">
@@ -190,7 +195,7 @@
             <label class="label" for="password">Neues Passwort</label>
             <div class="control">
               <input class="input" id="password" name="password" type="password"
-                     placeholder="Mindestens 6 Zeichen">
+                     placeholder="Mindestens 12 Zeichen">
             </div>
           </div>
           <div class="field">
@@ -215,6 +220,7 @@
         Firmenliste einsehen und als CSV herunterladen können.</p>
 
         <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="save_share">
           <div class="field">
             <label class="checkbox">
@@ -237,6 +243,7 @@
         </div>
         <div class="buttons">
           <form method="post" action="{{ url_for('admin') }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="regenerate_token">
             <button class="button is-light is-small" type="submit">Link neu generieren</button>
           </form>
@@ -277,6 +284,17 @@
   var saved = null;
   try { saved = localStorage.getItem('seiriAdminTab'); } catch (err) {}
   activate(saved || 'status');
+})();
+
+(function () {
+  document.querySelectorAll('.delete-status-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      var name = form.getAttribute('data-name') || '';
+      if (!window.confirm('Status „' + name + '“ wirklich löschen?')) {
+        event.preventDefault();
+      }
+    });
+  });
 })();
 </script>
 

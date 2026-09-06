@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon/apple-touch-icon.png') }}">
   <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
   <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
 <body>
@@ -36,6 +36,7 @@
             <h2 class="title is-5">Anmeldung</h2>
             <p class="subtitle">Diese Seite ist durch ein Passwort geschützt.</p>
             <form method="post" action="{{ url_for('admin_login') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="next" value="{{ next_url or '' }}">
               <div class="field">
                 <label class="label" for="password">Passwort</label>

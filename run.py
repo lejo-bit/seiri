@@ -6,11 +6,25 @@ On every start it checks and updates the database schema
 import os
 import secrets
 
-from flask import Flask
+from flask import Flask, flash, redirect, request, url_for
+from flask_wtf.csrf import CSRFError, CSRFProtect
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from models import db
-from routes import register_routes
+from routes import limiter, register_routes
 from startdb import ensure_schema
+
+
+csrf = CSRFProtect()
+
+
+def handle_csrf_error(reason):
+    """Return a friendly page instead of a bare 400 on CSRF failure."""
+    flash("Ihre Sitzung ist abgelaufen oder ungültig. Bitte versuchen Sie es erneut.", "error")
+    referrer = request.referrer
+    if referrer and request.host and request.host in referrer:
+        return redirect(referrer)
+    return redirect(url_for("index"))
 
 
 def _load_secret_key(basedir):
@@ -62,6 +76,35 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     app.config.setdefault("SQLALCHEMY_TRACK_MODIFICATIONS", False)
+
+    # --- security hardening (sessions, proxy, CSRF, headers) ---
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=os.environ.get("SEIRI_SECURE_COOKIES", "0") == "1",
+    )
+
+    if os.environ.get("BEHIND_PROXY", "0") == "1":
+        # Trust a single reverse proxy (nginx) for the real client IP / scheme.
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    csrf.init_app(app)
+    app.errorhandler(CSRFError)(handle_csrf_error)
+    limiter.init_app(app)
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+            "font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        )
+        return response
 
     db.init_app(app)
     register_routes(app)
