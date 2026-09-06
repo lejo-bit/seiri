@@ -6,64 +6,59 @@
 <h1 class="title">Praktikumsseiten</h1>
 <p class="subtitle">Webseiten und Portale, auf denen Firmen nach Praktikanten suchen.</p>
 
-<div class="columns">
-  <div class="column is-one-third">
-    <div class="box">
-      <h2 class="title is-5">Seite hinzufügen</h2>
-      <form method="post" action="{{ url_for('sites') }}">
-        <div class="field">
-          <label class="label" for="name">Name</label>
-          <div class="control">
-            <input class="input" id="name" name="name" type="text"
-                   placeholder="z. B. StepStone" required>
-          </div>
-        </div>
-        <div class="field">
-          <label class="label" for="url">URL</label>
-          <div class="control">
-            <input class="input" id="url" name="url" type="text"
-                   inputmode="url" placeholder="https://www.stepstone.de" required>
-          </div>
-        </div>
-        <button class="button is-primary" type="submit">Hinzufügen</button>
-      </form>
+<div class="box mb-4">
+  <h2 class="title is-5">Seite hinzufügen</h2>
+  <form method="post" action="{{ url_for('sites') }}">
+    <div class="field">
+      <label class="label" for="name">Name</label>
+      <div class="control">
+        <input class="input" id="name" name="name" type="text"
+               placeholder="z. B. StepStone" required>
+      </div>
     </div>
-  </div>
-  <div class="column is-two-thirds">
-    <div class="box">
-      <h2 class="title is-5">Vorhandene Seiten</h2>
-      {% if sites %}
-      <table class="table is-fullwidth is-hoverable is-striped">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>URL</th>
-            <th class="has-text-right">Aktionen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for site in sites %}
-          <tr>
-            <td class="has-text-weight-medium">
-              <a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.name }}</a>
-            </td>
-            <td><a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.url }}</a></td>
-            <td class="has-text-right">
-              <form class="delete-site-form" method="post"
-                    action="{{ url_for('delete_site', site_id=site.id) }}"
-                    data-name="{{ site.name }}" style="display:inline;">
-                <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p class="has-text-grey-lighter">Noch keine Seiten vorhanden.</p>
-      {% endif %}
+    <div class="field">
+      <label class="label" for="url">URL</label>
+      <div class="control">
+        <input class="input" id="url" name="url" type="text"
+               inputmode="url" placeholder="https://www.stepstone.de" required>
+      </div>
     </div>
-  </div>
+    <button class="button is-primary" type="submit">Hinzufügen</button>
+  </form>
+</div>
+
+<div class="box">
+  <h2 class="title is-5">Vorhandene Seiten</h2>
+  {% if sites %}
+  <table class="table is-fullwidth is-hoverable is-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>URL</th>
+        <th class="has-text-right">Aktionen</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for site in sites %}
+      <tr>
+        <td class="has-text-weight-medium">
+          <a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.name }}</a>
+        </td>
+        <td><a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.url }}</a></td>
+        <td class="has-text-right">
+          <form class="delete-site-form" method="post"
+                action="{{ url_for('delete_site', site_id=site.id) }}"
+                data-name="{{ site.name }}" style="display:inline;">
+            <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="has-text-grey-lighter">Noch keine Seiten vorhanden.</p>
+  {% endif %}
 </div>
 
 <script>
