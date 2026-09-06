@@ -138,6 +138,14 @@
                       placeholder="Text des Anschreibens...">{{ company.cover_letter or '' }}</textarea>
           </div>
         </div>
+
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="cover_letter_locked"
+                   {{ 'checked' if company.cover_letter_locked }}>
+            Anschreiben schützen (nicht überschreiben)
+          </label>
+        </div>
       </div>
     </div>
 

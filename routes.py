@@ -50,6 +50,7 @@ def _fields_from_form():
         "description": request.form.get("description", "").strip(),
         "website": request.form.get("website", "").strip(),
         "cover_letter": request.form.get("cover_letter", "").strip(),
+        "cover_letter_locked": request.form.get("cover_letter_locked") is not None,
         "status_id": request.form.get("status_id", type=int),
         "recruitment": request.form.get("recruitment", "").strip(),
     }
@@ -81,6 +82,7 @@ def _apply_company_form(company, fields):
     company.description = fields["description"]
     company.website = _clean_website(fields["website"])
     company.cover_letter = fields["cover_letter"]
+    company.cover_letter_locked = fields["cover_letter_locked"]
     company.status_id = fields["status_id"]
     company.recruitment = _clean_recruitment(fields["recruitment"])
 
@@ -402,10 +404,23 @@ def admin():
                 data = _get_profile()
                 data.cover_letter_template = template
                 companies = Company.query.all()
+                updated = 0
+                skipped = 0
                 for company in companies:
-                    company.cover_letter = template
+                    if company.cover_letter_locked:
+                        skipped += 1
+                    else:
+                        company.cover_letter = template
+                        updated += 1
                 db.session.commit()
-                flash(f"Anschreiben-Muster auf {len(companies)} Firmen angewendet.", "success")
+                if skipped:
+                    flash(
+                        f"Anschreiben-Muster auf {updated} Firmen angewendet "
+                        f"({skipped} geschützt übersprungen).",
+                        "success",
+                    )
+                else:
+                    flash(f"Anschreiben-Muster auf {updated} Firmen angewendet.", "success")
         elif action == "save_password":
             _handle_password_form(settings)
         elif action == "save_share":

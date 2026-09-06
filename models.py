@@ -52,6 +52,7 @@ class Company(db.Model):
     description = db.Column(db.Text)
     website = db.Column(db.String(255))
     cover_letter = db.Column(db.Text)
+    cover_letter_locked = db.Column(db.Boolean, nullable=False, default=False)
     status_id = db.Column(db.Integer, db.ForeignKey("status.id"))
     recruitment = db.Column(db.String(20), default=RECRUITMENT_DEFAULT)
     updated_at = db.Column(

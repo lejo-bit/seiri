@@ -136,6 +136,14 @@
           </div>
         </div>
 
+        <div class="field">
+          <label class="checkbox">
+            <input type="checkbox" name="cover_letter_locked"
+                   {{ 'checked' if (company and company.cover_letter_locked) }}>
+            Anschreiben schützen (nicht überschreiben)
+          </label>
+        </div>
+
         <div class="field is-grouped mt-4">
           <div class="control">
             <button class="button is-primary" type="submit">
