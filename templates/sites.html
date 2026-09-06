@@ -45,9 +45,9 @@
           {% for site in sites %}
           <tr>
             <td class="has-text-weight-medium">
-              <a href="{{ site.url }}" target="_blank" rel="noopener">{{ site.name }}</a>
+              <a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.name }}</a>
             </td>
-            <td><a href="{{ site.url }}" target="_blank" rel="noopener">{{ site.url }}</a></td>
+            <td><a href="{{ site.url }}" target="_blank" rel="noopener noreferrer">{{ site.url }}</a></td>
             <td class="has-text-right">
               <form class="delete-site-form" method="post"
                     action="{{ url_for('delete_site', site_id=site.id) }}"

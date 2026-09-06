@@ -20,7 +20,7 @@
   <button class="button is-primary" type="button" id="toggleEditBtn">Daten bearbeiten</button>
   <a class="button is-light" href="{{ url_for('index') }}">Zurück zur Liste</a>
   <a class="button is-link" href="{{ url_for('company_pdf', company_id=company.id) }}"
-     target="_blank" rel="noopener">PDF generieren</a>
+     target="_blank" rel="noopener noreferrer">PDF generieren</a>
   <form id="deleteCompanyForm" method="post"
         action="{{ url_for('delete_company', company_id=company.id) }}"
         data-name="{{ company.name }}" style="display:inline;">
@@ -203,7 +203,7 @@
       <th class="has-text-weight-semibold">Website</th>
       <td>
         {% if company.website %}
-          <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website }}</a>
+          <a href="{{ company.website }}" target="_blank" rel="noopener noreferrer">{{ company.website }}</a>
         {% else %}
           —
         {% endif %}
@@ -222,7 +222,7 @@
     <ul class="mb-3">
       {% for link in company.job_links %}
         <li>
-          <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a>
+          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.url }}</a>
           <form method="post" action="{{ url_for('delete_job_link', link_id=link.id) }}"
                 style="display:inline; margin-left:0.5rem;">
             <button class="button is-small is-danger is-outlined" type="submit">Löschen</button>

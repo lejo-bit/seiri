@@ -50,7 +50,7 @@
             <td>
               {% if company.job_links %}
                 {% for link in company.job_links %}
-                  <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.url }}</a>{% if not loop.last %}<br>{% endif %}
+                  <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.url }}</a>{% if not loop.last %}<br>{% endif %}
                 {% endfor %}
               {% else %}
                 —
