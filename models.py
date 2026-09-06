@@ -112,6 +112,7 @@ class Profile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(160))
     address = db.Column(db.String(200))
+    plz = db.Column(db.String(20))
     city = db.Column(db.String(120))
     email = db.Column(db.String(120))
     phone = db.Column(db.String(40))

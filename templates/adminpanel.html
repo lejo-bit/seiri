@@ -117,10 +117,17 @@
             </div>
           </div>
           <div class="field">
-            <label class="label" for="city">Stadt / PLZ</label>
+            <label class="label" for="plz">PLZ</label>
+            <div class="control">
+              <input class="input" id="plz" name="plz" type="text"
+                     value="{{ profile.plz or '' }}" placeholder="z. B. 12345">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="city">Stadt</label>
             <div class="control">
               <input class="input" id="city" name="city" type="text"
-                     value="{{ profile.city or '' }}" placeholder="z. B. 12345 Musterstadt">
+                     value="{{ profile.city or '' }}" placeholder="z. B. Musterstadt">
             </div>
           </div>
           <div class="field">

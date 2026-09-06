@@ -378,6 +378,7 @@ def admin():
             data = _get_profile()
             data.full_name = request.form.get("full_name", "").strip()
             data.address = request.form.get("address", "").strip()
+            data.plz = request.form.get("plz", "").strip()
             data.city = request.form.get("city", "").strip()
             data.email = request.form.get("email", "").strip()
             data.phone = request.form.get("phone", "").strip()
@@ -477,8 +478,9 @@ def company_pdf(company_id):
     sender = []
     if profile_data.address:
         sender.append(profile_data.address)
-    if profile_data.city:
-        sender.append(profile_data.city)
+    city_line = " ".join(filter(None, [profile_data.plz, profile_data.city]))
+    if city_line:
+        sender.append(city_line)
     if profile_data.phone:
         sender.append(f"Tel.: {profile_data.phone}")
     if profile_data.email:
