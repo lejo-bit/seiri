@@ -46,9 +46,19 @@ def ensure_schema(app):
                 for column in table.columns:
                     if column.name not in columns:
                         col_type = column.type.compile(engine.dialect)
-                        conn.execute(
-                            text(f"ALTER TABLE {table.name} ADD COLUMN {column.name} {col_type}")
-                        )
+                        if table.name == "settings" and column.name == "google_search_enabled":
+                            # Existing installations should keep Google search
+                            # enabled until the administrator turns it off.
+                            statement = (
+                                "ALTER TABLE settings ADD COLUMN "
+                                "google_search_enabled BOOLEAN NOT NULL DEFAULT 1"
+                            )
+                        else:
+                            statement = (
+                                f"ALTER TABLE {table.name} ADD COLUMN "
+                                f"{column.name} {col_type}"
+                            )
+                        conn.execute(text(statement))
                         changed = True
                         print(f"Added column: {table.name}.{column.name}")
 

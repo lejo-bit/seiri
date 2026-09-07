@@ -10,7 +10,8 @@ Eine Flask-Anwendung **SEIRI – Praktikum** zum Verwalten von Praktikumsbewerbu
 - eine Schaltfläche **„PDF generieren“** — ein sauberes A4-Anschreiben mit den Firmendaten, deinen Daten und dem aktuellen Datum,
 - **mehrere Stellenangebot-Links** pro Firma (exportierbar),
 - eine **Praktikumsseiten**-Seite — eine separate Liste mit Job-Portalen (eigene Tabelle),
-- eine **Teilen**-Funktion: eine nur-lesbare Firmenliste über einen geheimen Link.
+- eine **Teilen**-Funktion: eine nur-lesbare Firmenliste über einen geheimen Link,
+- eine optionale **Google-Firmensuche** beim Hinzufügen einer neuen Firma.
 
 Die Oberfläche nutzt das CSS-Framework **Bulma** (dunkles Design). Die Bedienoberfläche ist auf Deutsch.
 
@@ -37,7 +38,8 @@ pip install -r requirements.txt
 .venv/bin/python startdb.py
 
 # Entwicklungsserver starten
-.venv/bin/python run.py
+# Windows: .venv\Scripts\python.exe run.py
+# Linux/macOS: .venv/bin/python run.py
 ```
 
 Beim Start prüft `run.py` die Datenbank und aktualisiert das Schema (fehlende Tabellen und Spalten werden angelegt — ohne Daten zu löschen).
@@ -54,6 +56,7 @@ Die Anwendung ist dann erreichbar unter: **http://127.0.0.1:5001**
 
 - `models.py` — Datenbankmodelle (`Status`, `Company`, `Profile`, `Settings`, `JobLink`, `JobSite`) — siehe `docs/db_structure.md`
 - `routes.py` — Anwendungsrouten
+- `google_places.py` — Google-Places-Suche für neue Firmen (serverseitiger API-Key)
 - `run.py` — Application-Factory + Serverstart
 - `startdb.py` — Datenbank-Erstellung / automatische Schema-Aktualisierung
 - `templates/` — HTML-Templates (Bulma)
@@ -63,9 +66,30 @@ Die Anwendung ist dann erreichbar unter: **http://127.0.0.1:5001**
 
 ## Teilen & Export
 
-Im Admin-Bereich erstellt der Tab **„Teilen“** einen geheimen, nicht erratbaren Link (`/share/<token>`), der eine nur-lesbare Liste aller Firmen zeigt (Name, Adresse, Status, „Sucht?“) — inklusive Schaltfläche zum CSV-Export. Der Link ist **nicht passwortgeschützt** — jeder, der den Link hat, sieht die Liste. Erstelle daher einen neuen Link, wenn du den Zugriff widerrufen möchtest.
+Im Admin-Bereich erstellt der Tab **„Teilen“** einen geheimen, nicht erratbaren Link (`/share/<token>`), der eine nur-lesbare Liste aller Firmen zeigt (Name, Adresse, Stadt, E-Mail, Telefon, Website, Stellenangebote und „Sucht?“) — inklusive Schaltfläche zum CSV-Export. Der Link ist **nicht passwortgeschützt** — jeder, der den Link hat, sieht die Liste. Erstelle daher einen neuen Link, wenn du den Zugriff widerrufen möchtest.
+
+Auf der geteilten Seite können die Firmen nach **Name**, **Stadt** und **Stellenangebote** sortiert werden. Außerdem gibt es eine Suche nach dem Firmennamen. Stellenangebote werden als kompakte Schaltflächen („Link 1“, „Link 2“ usw.) angezeigt.
 
 Der CSV-Export (immer die gesamte Liste auf einmal) enthält: Name, Adresse, PLZ, Stadt, E-Mail, Telefon, Website, Stellenangebote, Status, Sucht?.
+
+## Google-Firmensuche
+
+Beim Anlegen einer neuen Firma kann über **„Firma suchen“** die Google Places API nach passenden Unternehmen durchsucht werden. Die gefundenen Daten können anschließend über **„Übernehmen“** in das Formular übernommen und vor dem Speichern geprüft werden.
+
+Wenn die Suche ohne Stadt Treffer aus mehreren Städten liefert, muss zuerst eine Stadt ausgewählt werden. Danach wird die Suche auf diese Stadt eingeschränkt. Die Suche wird nur nach einem Klick auf **„Firma suchen“** ausgeführt — nicht automatisch beim Tippen.
+
+Die Google-Suche kann im Admin-Bereich unter **Admin → Teilen → Google-Firmensuche aktivieren** ein- oder ausgeschaltet werden. Ist sie ausgeschaltet, wird die Schaltfläche beim Hinzufügen einer Firma ausgeblendet und der Such-Endpunkt blockiert.
+
+Die Suche kann folgende Daten übernehmen, sofern Google sie liefert:
+
+- Firmenname
+- vollständige Adresse
+- Straße und Hausnummer
+- PLZ und Stadt
+- Telefonnummer
+- Website
+
+E-Mail-Adressen werden von der verwendeten Google-Places-Suche normalerweise nicht geliefert und bleiben daher meist leer. Die Google Places API kann außerdem eine aktivierte Abrechnung im Google-Cloud-Projekt voraussetzen. Beschränke den API-Key in Google Cloud auf die benötigte Places API und verwende ihn ausschließlich serverseitig.
 
 ## Auf einem eigenen VPS-Server installieren
 
@@ -102,12 +126,24 @@ python3 -m venv .venv
 sudo bash -c 'echo "SECRET_KEY=$(openssl rand -hex 32)" > /etc/seiri.env'
 sudo bash -c 'echo "SEIRI_SECURE_COOKIES=1" >> /etc/seiri.env'
 sudo bash -c 'echo "BEHIND_PROXY=1" >> /etc/seiri.env'
+# Google Places API key — replace the placeholder with your real key
+sudo bash -c 'echo "GOOGLE_PLACES_API_KEY=DEIN_GOOGLE_API_KEY" >> /etc/seiri.env'
 sudo chmod 600 /etc/seiri.env
 ```
 
 - `SEIRI_SECURE_COOKIES=1` — Sitzungscookies nur über HTTPS senden (aktivieren, sobald HTTPS läuft, siehe Schritt 7).
 - `BEHIND_PROXY=1` — nginx als Reverse-Proxy berücksichtigen (echte Client-IP und `https`-Schema für den Teilen-Link).
+- `GOOGLE_PLACES_API_KEY` — serverseitiger Schlüssel für die Firmensuche auf der Seite „Firma hinzufügen“. Der Schlüssel wird nicht im Quellcode gespeichert.
 - Ohne gesetzten `SECRET_KEY` erzeugt die Anwendung beim ersten Start automatisch einen zufälligen Schlüssel und speichert ihn in `instance/secret_key`.
+
+Nach dem Eintragen des Schlüssels die Datei absichern und prüfen, ohne den Schlüssel auszugeben:
+
+```bash
+sudo chmod 600 /etc/seiri.env
+sudo grep -q '^GOOGLE_PLACES_API_KEY=.' /etc/seiri.env && echo 'Google Places API key: SET' || echo 'Google Places API key: MISSING'
+```
+
+Das Google-Cloud-Projekt muss die Places API (New) aktiviert haben. Je nach Google-Cloud-Konto ist außerdem ein Billing-Konto erforderlich. API-Keys niemals in Git, Templates oder JavaScript speichern.
 
 Datenbank- und Schlüsseldatei absichern (enthalten persönliche Daten):
 
@@ -143,6 +179,14 @@ sudo chown -R www-data:www-data /opt/seiri
 sudo systemctl daemon-reload
 sudo systemctl enable --now seiri
 sudo systemctl status seiri
+```
+
+Nach Änderungen an `/etc/seiri.env` den Dienst neu starten:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart seiri
+sudo systemctl status seiri --no-pager
 ```
 
 ### 6. Nginx als Reverse-Proxy

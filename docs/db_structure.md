@@ -167,6 +167,7 @@ Holds a single row with **application settings**. Maps to the table `settings`.
 | `password_hash`     | `String(255)` | –                            | Hashed admin password (pbkdf2)    |
 | `share_enabled`     | `Boolean`     | `NOT NULL`, default `False`  | Shared list enabled               |
 | `share_token`       | `String(64)`  | –                            | Secret token for the share link   |
+| `google_search_enabled` | `Boolean` | `NOT NULL`, default `True` | Google Places company search enabled |
 
 ## ORM mapping
 

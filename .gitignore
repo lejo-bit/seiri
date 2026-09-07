@@ -8,3 +8,4 @@ instance/
 # SQLite database
 instance/seiri.db
 .DS_Store
+dev/

@@ -24,23 +24,36 @@
       </div>
 
       {% if companies %}
-      <table class="table is-fullwidth is-hoverable is-striped">
+      <div class="field mb-4">
+        <label class="label" for="share-company-search">Firma suchen</label>
+        <div class="control">
+          <input id="share-company-search" class="input" type="search"
+                 placeholder="Nach Name suchen…" aria-label="Nach Firmenname suchen">
+        </div>
+      </div>
+
+      <p id="share-results" class="has-text-grey-lighter is-size-7 mb-3" aria-live="polite"></p>
+
+      <div class="table-container share-table-container">
+      <table id="share-companies" class="table is-fullwidth is-hoverable is-striped">
         <thead>
           <tr>
-            <th>Name</th>
+            <th><button class="share-sort-button" type="button" data-sort="name">Name <span aria-hidden="true"></span></button></th>
             <th>Adresse</th>
-            <th>Stadt</th>
+            <th><button class="share-sort-button" type="button" data-sort="city">Stadt <span aria-hidden="true"></span></button></th>
             <th>E-Mail</th>
             <th>Telefon</th>
             <th>Website</th>
-            <th>Stellenangebote</th>
-            <th>Status</th>
+            <th><button class="share-sort-button" type="button" data-sort="jobs">Stellenangebote <span aria-hidden="true"></span></button></th>
             <th>Sucht?</th>
           </tr>
         </thead>
         <tbody>
           {% for company in companies %}
-          <tr>
+          <tr data-company-row
+              data-name="{{ company.name|lower }}"
+              data-city="{{ (company.city or '')|lower }}"
+              data-jobs="{{ company.job_links|map(attribute='url')|join(' ')|lower }}">
             <td class="has-text-weight-medium">{{ company.name }}</td>
             <td>
               {% if company.address or company.address2 %}
@@ -55,16 +68,11 @@
             <td>{{ company.website or '—' }}</td>
             <td>
               {% if company.job_links %}
+                <div class="share-job-links">
                 {% for link in company.job_links %}
-                  <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.url }}</a>{% if not loop.last %}<br>{% endif %}
+                  <a class="button is-small is-light share-job-link" href="{{ link.url }}" target="_blank" rel="noopener noreferrer" aria-label="Stellenangebot {{ loop.index }} öffnen" title="{{ link.url }}">Link {{ loop.index }}</a>
                 {% endfor %}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>
-              {% if company.status %}
-                <span class="tag status-tag">{{ company.status.name }}</span>
+                </div>
               {% else %}
                 —
               {% endif %}
@@ -78,10 +86,74 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
+      <div id="share-no-results" class="notification is-info is-hidden">Keine Firmen für diese Suche gefunden.</div>
       {% else %}
       <p class="has-text-grey-lighter">Noch keine Firmen vorhanden.</p>
       {% endif %}
     </div>
   </section>
+  {% if companies %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const table = document.getElementById('share-companies');
+      const search = document.getElementById('share-company-search');
+      const results = document.getElementById('share-results');
+      const noResults = document.getElementById('share-no-results');
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.querySelectorAll('[data-company-row]'));
+      let sortKey = 'name';
+      let sortDirection = 'asc';
+
+      const updateSortIndicators = () => {
+        table.querySelectorAll('.share-sort-button').forEach((button) => {
+          const indicator = button.querySelector('span');
+          const active = button.dataset.sort === sortKey;
+          button.setAttribute('aria-sort', active ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none');
+          indicator.textContent = active ? (sortDirection === 'asc' ? ' ▲' : ' ▼') : '';
+        });
+      };
+
+      const sortRows = () => {
+        rows.sort((left, right) => {
+          const leftValue = left.dataset[sortKey] || '';
+          const rightValue = right.dataset[sortKey] || '';
+          if (!leftValue && rightValue) return 1;
+          if (leftValue && !rightValue) return -1;
+          return leftValue.localeCompare(rightValue, 'de', { sensitivity: 'base' }) * (sortDirection === 'asc' ? 1 : -1);
+        });
+        rows.forEach((row) => tbody.appendChild(row));
+        updateSortIndicators();
+      };
+
+      const filterRows = () => {
+        const query = search.value.trim().toLocaleLowerCase('de');
+        let visibleCount = 0;
+        rows.forEach((row) => {
+          const visible = row.dataset.name.includes(query);
+          row.classList.toggle('is-hidden', !visible);
+          if (visible) visibleCount += 1;
+        });
+        results.textContent = `${visibleCount} ${visibleCount === 1 ? 'Firma' : 'Firmen'}`;
+        noResults.classList.toggle('is-hidden', visibleCount !== 0);
+      };
+
+      table.querySelectorAll('.share-sort-button').forEach((button) => {
+        button.addEventListener('click', () => {
+          if (sortKey === button.dataset.sort) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+          } else {
+            sortKey = button.dataset.sort;
+            sortDirection = 'asc';
+          }
+          sortRows();
+        });
+      });
+      search.addEventListener('input', filterRows);
+      sortRows();
+      filterRows();
+    });
+  </script>
+  {% endif %}
 </body>
 </html>

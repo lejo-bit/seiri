@@ -134,5 +134,6 @@ class Settings(db.Model):
     password_hash = db.Column(db.String(255))
     share_enabled = db.Column(db.Boolean, nullable=False, default=False)
     share_token = db.Column(db.String(64))
+    google_search_enabled = db.Column(db.Boolean, nullable=False, default=True)
 
 

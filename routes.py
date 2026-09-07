@@ -2,8 +2,10 @@
 import csv
 import datetime
 import io
+import math
 import os
 import secrets
+import time
 
 from fpdf import FPDF
 from sqlalchemy.orm import selectinload
@@ -11,6 +13,7 @@ from flask import (
     Response,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -20,6 +23,8 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+from google_places import search_places
 
 from models import (
     DEFAULT_POSITION,
@@ -38,6 +43,8 @@ FONT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "f
 
 # Rate limiter (in-memory storage is fine for a single-process waitress deployment).
 limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
+_company_search_last_request = {}
+_COMPANY_SEARCH_COOLDOWN_SECONDS = 3
 
 
 # --------------------------------------------------------------------------- #
@@ -119,6 +126,11 @@ def _get_settings():
     if settings is None:
         settings = Settings(id=1)
         db.session.add(settings)
+        db.session.commit()
+    elif settings.google_search_enabled is None:
+        # Existing databases receive the new setting through the automatic
+        # schema update; keep Google search enabled unless explicitly disabled.
+        settings.google_search_enabled = True
         db.session.commit()
     return settings
 
@@ -228,7 +240,12 @@ def new_company():
         error = _validate_company(fields)
         if error:
             flash(error, "error")
-            return render_template("company_form.html", company=company, statuses=statuses)
+            return render_template(
+                "company_form.html",
+                company=company,
+                statuses=statuses,
+                google_search_enabled=_get_settings().google_search_enabled,
+            )
         db.session.add(company)
         db.session.commit()
         flash(f"Firma „{company.name}“ wurde hinzugefügt.", "success")
@@ -239,7 +256,53 @@ def new_company():
         company=None,
         statuses=statuses,
         cover_letter_template=profile.cover_letter_template or "",
+        google_search_enabled=_get_settings().google_search_enabled,
     )
+
+
+def search_companies():
+    """Search Google Places companies for the add-company form."""
+    if not _get_settings().google_search_enabled:
+        return jsonify({"error": "Die Google-Firmensuche ist im Admin-Bereich deaktiviert."}), 403
+
+    name = request.args.get("name", "").strip()
+    city = request.args.get("city", "").strip() or None
+
+    if len(name) < 2:
+        return jsonify({"error": "Der Firmenname muss mindestens 2 Zeichen enthalten."}), 400
+    if len(name) > 120 or (city and len(city) > 120):
+        return jsonify({"error": "Firmenname oder Stadt ist zu lang."}), 400
+
+    client_key = get_remote_address()
+    now = time.monotonic()
+    last_request = _company_search_last_request.get(client_key)
+    elapsed = now - last_request["time"] if last_request else None
+    city_follow_up = bool(city and last_request and not last_request["city"])
+    if elapsed is not None and elapsed < _COMPANY_SEARCH_COOLDOWN_SECONDS and not city_follow_up:
+        wait_seconds = max(1, math.ceil(_COMPANY_SEARCH_COOLDOWN_SECONDS - elapsed))
+        return jsonify({
+            "error": f"Bitte warten Sie {wait_seconds} Sekunden vor der nächsten Suche.",
+            "retry_after": wait_seconds,
+        }), 429
+    _company_search_last_request[client_key] = {"time": now, "city": city}
+
+    try:
+        results = search_places(name, city)
+    except RuntimeError as error:
+        status_code = 503 if "nicht konfiguriert" in str(error) else 502
+        return jsonify({"error": str(error)}), status_code
+
+    if city:
+        return jsonify({"status": "ok", "cities": [], "results": results})
+
+    cities = sorted(
+        {result["city"] for result in results if result.get("city")},
+        key=str.casefold,
+    )
+    if len(cities) > 1:
+        return jsonify({"status": "city_required", "cities": cities, "results": []})
+
+    return jsonify({"status": "ok", "cities": cities, "results": results})
 
 
 def edit_company(company_id):
@@ -251,11 +314,21 @@ def edit_company(company_id):
         error = _validate_company(fields)
         if error:
             flash(error, "error")
-            return render_template("company_form.html", company=company, statuses=statuses)
+            return render_template(
+                "company_form.html",
+                company=company,
+                statuses=statuses,
+                google_search_enabled=_get_settings().google_search_enabled,
+            )
         db.session.commit()
         flash(f"Firma „{company.name}“ wurde aktualisiert.", "success")
         return redirect(url_for("company_detail", company_id=company.id))
-    return render_template("company_form.html", company=company, statuses=statuses)
+    return render_template(
+        "company_form.html",
+        company=company,
+        statuses=statuses,
+        google_search_enabled=_get_settings().google_search_enabled,
+    )
 
 
 def company_detail(company_id):
@@ -444,6 +517,10 @@ def admin():
                 settings.share_token = secrets.token_hex(16)
             db.session.commit()
             flash("Teilen-Einstellungen gespeichert.", "success")
+        elif action == "save_google_search":
+            settings.google_search_enabled = request.form.get("google_search_enabled") is not None
+            db.session.commit()
+            flash("Google-Firmensuche-Einstellungen gespeichert.", "success")
         elif action == "regenerate_token":
             settings.share_token = secrets.token_hex(16)
             db.session.commit()
@@ -654,6 +731,7 @@ def register_routes(app):
 
     app.add_url_rule("/", view_func=index)
     app.add_url_rule("/companies/new", view_func=new_company, methods=["GET", "POST"])
+    app.add_url_rule("/companies/search", view_func=search_companies)
     app.add_url_rule(
         "/companies/<int:company_id>/edit",
         view_func=edit_company,

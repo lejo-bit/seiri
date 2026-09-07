@@ -26,12 +26,24 @@
           <div class="column">
             <div class="field">
               <label class="label" for="name">Name des Unternehmens *</label>
-              <div class="control">
+              <div class="field has-addons">
+                <div class="control is-expanded">
                 <input class="input" id="name" name="name" type="text"
                        value="{{ (company.name if company else '') }}"
                        placeholder="z. B. Muster GmbH" required>
+                </div>
+                {% if not is_edit and google_search_enabled %}
+                <div class="control">
+                  <button id="company-search-button" class="button is-primary" type="button">Firma suchen</button>
+                </div>
+                {% endif %}
               </div>
             </div>
+
+            {% if not is_edit and google_search_enabled %}
+            <div id="company-search-message" class="notification is-info is-hidden" aria-live="polite"></div>
+            <div id="company-search-results" class="company-search-results is-hidden"></div>
+            {% endif %}
 
             <div class="field">
               <label class="label" for="status_id">Status (optional)</label>
@@ -40,7 +52,7 @@
                   <select id="status_id" name="status_id">
                     <option value=""
                             {{ 'selected' if not (company and company.status_id) }}>
-                      — kein Status —
+                      {{ '— kein Status —' if is_edit else '— NEU —' }}
                     </option>
                     {% for status in statuses %}
                       <option value="{{ status.id }}"
@@ -168,5 +180,144 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if not is_edit and google_search_enabled %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const nameInput = document.getElementById('name');
+    const cityInput = document.getElementById('city');
+    const searchButton = document.getElementById('company-search-button');
+    const message = document.getElementById('company-search-message');
+    const resultsPanel = document.getElementById('company-search-results');
+    const addressInput = document.getElementById('address');
+    const postcodeInput = document.getElementById('address2');
+    const phoneInput = document.getElementById('phone');
+    const websiteInput = document.getElementById('website');
+    const emailInput = document.getElementById('email');
+    let retryTimer = null;
+
+    const escapeHtml = (value) => String(value || '').replace(/[&<>'"]/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[character]));
+
+    const showMessage = (text, type = 'is-info') => {
+      message.className = `notification ${type}`;
+      message.textContent = text;
+    };
+
+    const clearSearch = () => {
+      message.className = 'notification is-info is-hidden';
+      resultsPanel.className = 'company-search-results is-hidden';
+      resultsPanel.innerHTML = '';
+    };
+
+    const startRetryCountdown = (seconds) => {
+      if (retryTimer) clearInterval(retryTimer);
+      let remaining = Math.max(1, Number(seconds) || 3);
+      searchButton.disabled = true;
+      searchButton.textContent = `Erneut suchen in ${remaining} s`;
+      retryTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearInterval(retryTimer);
+          retryTimer = null;
+          searchButton.disabled = false;
+          searchButton.textContent = 'Firma suchen';
+          return;
+        }
+        searchButton.textContent = `Erneut suchen in ${remaining} s`;
+      }, 1000);
+    };
+
+    const renderResults = (results) => {
+      resultsPanel.innerHTML = '';
+      if (!results.length) {
+        showMessage('Keine passenden Unternehmen gefunden.', 'is-warning');
+        resultsPanel.className = 'company-search-results is-hidden';
+        return;
+      }
+      resultsPanel.innerHTML = `<h2 class="title is-6">Suchergebnisse</h2>` + results.map((result, index) => `
+        <div class="company-search-result">
+          <div>
+            <p class="has-text-weight-semibold">${escapeHtml(result.name)}</p>
+            <p class="is-size-7">${escapeHtml(result.address || 'Keine Adresse')}</p>
+            ${result.phone ? `<p class="is-size-7">Telefon: ${escapeHtml(result.phone)}</p>` : ''}
+            ${result.website ? `<p class="is-size-7">Website: ${escapeHtml(result.website)}</p>` : ''}
+            ${result.email ? `<p class="is-size-7">E-Mail: ${escapeHtml(result.email)}</p>` : ''}
+          </div>
+          <button class="button is-small is-primary company-use-result" type="button" data-result-index="${index}">Übernehmen</button>
+        </div>
+      `).join('');
+      resultsPanel.className = 'company-search-results';
+      resultsPanel.querySelectorAll('.company-use-result').forEach((button) => {
+        button.addEventListener('click', () => {
+          const result = results[Number(button.dataset.resultIndex)];
+          nameInput.value = result.name || '';
+          addressInput.value = result.street || result.address || '';
+          postcodeInput.value = result.postcode || '';
+          cityInput.value = result.city || '';
+          phoneInput.value = result.phone || '';
+          websiteInput.value = result.website || '';
+          emailInput.value = result.email || '';
+          showMessage('Daten übernommen. Bitte prüfen und anschließend „Firma hinzufügen“ klicken.', 'is-success');
+          resultsPanel.className = 'company-search-results is-hidden';
+        });
+      });
+    };
+
+    const searchCompanies = async (selectedCity = '') => {
+      const name = nameInput.value.trim();
+      const city = selectedCity || cityInput.value.trim();
+      if (name.length < 2) {
+        showMessage('Bitte mindestens 2 Zeichen des Firmennamens eingeben.', 'is-warning');
+        return;
+      }
+      searchButton.disabled = true;
+      searchButton.textContent = 'Suche…';
+      clearSearch();
+      let retrying = false;
+      try {
+        const params = new URLSearchParams({ name });
+        if (city) params.set('city', city);
+        const response = await fetch(`{{ url_for('search_companies') }}?${params}`);
+        const data = await response.json();
+        if (response.status === 429) {
+          retrying = true;
+          startRetryCountdown(data.retry_after || 3);
+          showMessage(data.error || 'Die Suche ist momentan ausgelastet.', 'is-warning');
+          return;
+        }
+        if (!response.ok) throw new Error(data.error || 'Die Suche ist fehlgeschlagen.');
+        if (data.status === 'city_required') {
+          showMessage('Mehrere Städte gefunden. Bitte zuerst eine Stadt auswählen:', 'is-info');
+          resultsPanel.innerHTML = data.cities.map((cityName) =>
+            `<button class="button is-small is-light company-city-choice" type="button">${escapeHtml(cityName)}</button>`
+          ).join(' ');
+          resultsPanel.className = 'company-search-results';
+          resultsPanel.querySelectorAll('.company-city-choice').forEach((button) => {
+            button.addEventListener('click', () => {
+              cityInput.value = button.textContent;
+              searchCompanies(button.textContent);
+            });
+          });
+          return;
+        }
+        renderResults(data.results || []);
+      } catch (error) {
+        showMessage(error.message, 'is-danger');
+      } finally {
+        if (!retrying) {
+          searchButton.disabled = false;
+          searchButton.textContent = 'Firma suchen';
+        }
+      }
+    };
+
+    searchButton.addEventListener('click', () => searchCompanies());
+  });
+</script>
+{% endif %}
 {% endblock %}
 

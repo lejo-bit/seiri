@@ -247,6 +247,64 @@ a:hover {
   white-space: nowrap;
 }
 
+/* ---------- Shared company list ---------- */
+.share-table-container {
+  overflow-x: auto;
+}
+.share-sort-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+}
+.share-sort-button:hover,
+.share-sort-button:focus {
+  color: var(--seiri-accent-strong);
+}
+.share-sort-button:focus-visible {
+  outline: 2px solid var(--seiri-accent);
+  outline-offset: 2px;
+}
+.share-job-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 7rem;
+}
+.share-job-link {
+  white-space: nowrap;
+}
+
+/* ---------- Company search results ---------- */
+.company-search-results {
+  background-color: var(--seiri-panel-2);
+  border: 1px solid var(--seiri-border);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+.company-search-result {
+  align-items: center;
+  border-top: 1px solid var(--seiri-border);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+}
+.company-search-result:first-of-type {
+  border-top: 0;
+}
+.company-search-result p {
+  margin: 0.15rem 0;
+}
+.company-city-choice {
+  margin: 0.2rem;
+}
+
 /* ---------- Recruitment tags ("looking for someone?") ---------- */
 .tag.recruitment-tag.looking {
   background-color: rgba(94, 204, 138, 0.16);
