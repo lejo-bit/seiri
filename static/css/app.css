@@ -248,8 +248,172 @@ a:hover {
 }
 
 /* ---------- Shared company list ---------- */
+.share-page {
+  padding-top: 3rem;
+}
+.share-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  margin-bottom: 2.25rem;
+}
+.share-eyebrow {
+  color: var(--seiri-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.6rem;
+}
+.share-header .title {
+  margin-bottom: 0.35rem;
+}
+.share-header .subtitle {
+  margin-bottom: 0;
+}
+.share-export {
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.share-export span {
+  font-size: 1.15rem;
+  line-height: 0;
+  margin-right: 0.45rem;
+}
+.share-toolbar {
+  align-items: flex-end;
+  background: var(--seiri-panel);
+  border: 1px solid var(--seiri-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+  padding: 1rem 1.15rem;
+}
+.share-search-field {
+  flex: 1;
+  margin-bottom: 0;
+  max-width: 36rem;
+}
+.share-search-field .label {
+  color: var(--seiri-text);
+  font-size: 0.8rem;
+  margin-bottom: 0.45rem;
+}
+.share-search-field .input {
+  background: var(--seiri-bg);
+  border-color: var(--seiri-border);
+  padding-left: 2.5rem;
+}
+.share-search-field .share-search-icon {
+  align-items: center;
+  bottom: 0;
+  color: var(--seiri-text-dim);
+  display: flex;
+  justify-content: center;
+  left: 0.75rem;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 1rem;
+}
+.share-search-field .share-search-icon svg {
+  display: block;
+  fill: none;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 1rem;
+}
+.share-summary {
+  align-items: baseline;
+  color: var(--seiri-text-dim);
+  display: flex;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+.share-summary strong {
+  color: var(--seiri-text);
+  font-size: 1.35rem;
+}
+.share-summary-label {
+  color: var(--seiri-text-dim);
+  margin-right: 0.35rem;
+}
+.share-results {
+  color: var(--seiri-text-dim);
+  font-size: 0.8rem;
+  margin: 0 0 0.65rem 0.15rem;
+}
 .share-table-container {
+  border: 1px solid var(--seiri-border);
+  border-radius: 8px;
   overflow-x: auto;
+}
+.share-table-container .table {
+  background: var(--seiri-panel);
+  color: var(--seiri-text);
+  margin-bottom: 0;
+}
+.share-table-container .table thead th {
+  background: var(--seiri-panel-2);
+  border-bottom: 1px solid var(--seiri-border);
+  color: var(--seiri-text-dim);
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  padding: 0.85rem 1rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.share-table-container .table td {
+  border-color: var(--seiri-border);
+  padding: 1rem;
+  vertical-align: middle;
+}
+.share-table-container .table tbody tr:hover {
+  background-color: var(--seiri-hover) !important;
+}
+.share-company-name {
+  color: var(--seiri-text);
+  font-weight: 650;
+  min-width: 12rem;
+}
+.share-location {
+  min-width: 13rem;
+}
+.share-location span,
+.share-location strong {
+  display: block;
+}
+.share-location strong {
+  color: var(--seiri-accent-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+.share-contact a,
+.share-website a {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.share-contact a + a {
+  margin-top: 0.25rem;
+}
+.share-website {
+  min-width: 8rem;
+}
+.share-website a {
+  font-weight: 600;
+}
+.share-muted {
+  color: var(--seiri-text-dim);
+  font-size: 0.88rem;
 }
 .share-sort-button {
   background: transparent;
@@ -274,6 +438,95 @@ a:hover {
   flex-wrap: wrap;
   gap: 0.35rem;
   min-width: 7rem;
+}
+.share-status {
+  white-space: nowrap;
+}
+.share-empty-state {
+  align-items: flex-start;
+  background: var(--seiri-panel);
+  border: 1px solid var(--seiri-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.5rem;
+}
+.share-empty-state span {
+  color: var(--seiri-text-dim);
+}
+
+@media (max-width: 768px) {
+  .share-page {
+    padding-top: 1.5rem;
+  }
+  .share-header,
+  .share-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .share-header {
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .share-export {
+    align-self: flex-start;
+  }
+  .share-toolbar {
+    gap: 0.85rem;
+  }
+  .share-summary {
+    justify-content: flex-end;
+  }
+  .share-table-container {
+    border: 0;
+    overflow: visible;
+  }
+  .share-table-container .table,
+  .share-table-container .table tbody,
+  .share-table-container .table tr,
+  .share-table-container .table td {
+    display: block;
+    width: 100%;
+  }
+  .share-table-container .table thead {
+    display: none;
+  }
+  .share-table-container .table tbody tr {
+    background: var(--seiri-panel);
+    border: 1px solid var(--seiri-border);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+  .share-table-container .table tbody tr.is-hidden {
+    display: none;
+  }
+  .share-table-container .table td {
+    border: 0;
+    padding: 0.55rem 0;
+  }
+  .share-table-container .table td::before {
+    color: var(--seiri-text-dim);
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+  }
+  .share-table-container .table .share-company-name {
+    font-size: 1.05rem;
+    padding-top: 0.15rem;
+  }
+  .share-table-container .table .share-company-name::before {
+    display: none;
+  }
+  .share-contact a,
+  .share-website a {
+    max-width: 100%;
+  }
 }
 .share-job-link {
   white-space: nowrap;

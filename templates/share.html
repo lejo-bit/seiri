@@ -14,35 +14,50 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
 <body>
-  <section class="section">
+  <section class="section share-page">
     <div class="container">
-      <h1 class="title">Unternehmensliste</h1>
-      <p class="subtitle">Gespeicherte Firmen und deren Bewerbungsstatus.</p>
-
-      <div class="buttons mb-4">
-        <a class="button is-primary" href="{{ url_for('share_export', token=token) }}">Export (CSV)</a>
+      <div class="share-header">
+        <div>
+          <p class="share-eyebrow">SEIRI · GETEILTE LISTE</p>
+          <h1 class="title">Unternehmensliste</h1>
+          <p class="subtitle">Gespeicherte Firmen und deren Bewerbungsstatus auf einen Blick.</p>
+        </div>
+        <a class="button is-primary share-export" href="{{ url_for('share_export', token=token) }}">
+          <span aria-hidden="true">↓</span> CSV exportieren
+        </a>
       </div>
 
       {% if companies %}
-      <div class="field mb-4">
-        <label class="label" for="share-company-search">Firma suchen</label>
-        <div class="control">
-          <input id="share-company-search" class="input" type="search"
-                 placeholder="Nach Name suchen…" aria-label="Nach Firmenname suchen">
+      <div class="share-toolbar">
+        <div class="field share-search-field">
+          <label class="label" for="share-company-search">Firmen durchsuchen</label>
+          <div class="control has-icons-left">
+            <input id="share-company-search" class="input" type="search"
+                   placeholder="Nach Firmenname suchen…" aria-label="Nach Firmenname suchen">
+            <span class="icon is-small is-left share-search-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle cx="11" cy="11" r="6.5"></circle>
+                <path d="m16 16 4.5 4.5"></path>
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div class="share-summary">
+          <span class="share-summary-label">Gespeichert</span>
+          <strong>{{ companies|length }}</strong>
+          <span>Firmen</span>
         </div>
       </div>
 
-      <p id="share-results" class="has-text-grey-lighter is-size-7 mb-3" aria-live="polite"></p>
+      <p id="share-results" class="share-results" aria-live="polite"></p>
 
       <div class="table-container share-table-container">
       <table id="share-companies" class="table is-fullwidth is-hoverable is-striped">
         <thead>
           <tr>
             <th><button class="share-sort-button" type="button" data-sort="name">Name <span aria-hidden="true"></span></button></th>
-            <th>Adresse</th>
-            <th><button class="share-sort-button" type="button" data-sort="city">Stadt <span aria-hidden="true"></span></button></th>
-            <th>E-Mail</th>
-            <th>Telefon</th>
+            <th><button class="share-sort-button" type="button" data-sort="city">Standort <span aria-hidden="true"></span></button></th>
+            <th>Kontakt</th>
             <th>Website</th>
             <th><button class="share-sort-button" type="button" data-sort="jobs">Stellenangebote <span aria-hidden="true"></span></button></th>
             <th>Sucht?</th>
@@ -54,19 +69,24 @@
               data-name="{{ company.name|lower }}"
               data-city="{{ (company.city or '')|lower }}"
               data-jobs="{{ company.job_links|map(attribute='url')|join(' ')|lower }}">
-            <td class="has-text-weight-medium">{{ company.name }}</td>
-            <td>
+            <td class="share-company-name" data-label="Unternehmen">{{ company.name }}</td>
+            <td class="share-location" data-label="Standort">
               {% if company.address or company.address2 %}
-                {{ company.address or '' }}{% if company.address and company.address2 %}, {% endif %}{{ company.address2 or '' }}
+                <span>{{ company.address or '' }}{% if company.address and company.address2 %}, {% endif %}{{ company.address2 or '' }}</span>
               {% else %}
-                —
+                <span class="share-muted">Keine Adresse</span>
               {% endif %}
+              <strong>{{ company.city or 'Stadt unbekannt' }}</strong>
             </td>
-            <td>{{ company.city or '—' }}</td>
-            <td>{{ company.email or '—' }}</td>
-            <td>{{ company.phone or '—' }}</td>
-            <td>{{ company.website or '—' }}</td>
-            <td>
+            <td class="share-contact" data-label="Kontakt">
+              {% if company.email %}<a href="mailto:{{ company.email }}">{{ company.email }}</a>{% endif %}
+              {% if company.phone %}<a href="tel:{{ company.phone }}">{{ company.phone }}</a>{% endif %}
+              {% if not company.email and not company.phone %}<span class="share-muted">Keine Kontaktdaten</span>{% endif %}
+            </td>
+            <td class="share-website" data-label="Website">
+              {% if company.website %}<a href="{{ company.website }}" target="_blank" rel="noopener noreferrer" title="{{ company.website }}">Website öffnen <span aria-hidden="true">↗</span></a>{% else %}<span class="share-muted">—</span>{% endif %}
+            </td>
+            <td class="share-jobs" data-label="Stellenangebote">
               {% if company.job_links %}
                 <div class="share-job-links">
                 {% for link in company.job_links %}
@@ -74,10 +94,10 @@
                 {% endfor %}
                 </div>
               {% else %}
-                —
+                <span class="share-muted">Keine Angebote</span>
               {% endif %}
             </td>
-            <td>
+            <td class="share-status" data-label="Sucht?">
               <span class="tag recruitment-tag {{ 'looking' if company.recruitment == 'looking' else ('no' if company.recruitment == 'not_looking' else 'unknown') }}">
                 {{ company.recruitment_label }}
               </span>
@@ -89,7 +109,10 @@
       </div>
       <div id="share-no-results" class="notification is-info is-hidden">Keine Firmen für diese Suche gefunden.</div>
       {% else %}
-      <p class="has-text-grey-lighter">Noch keine Firmen vorhanden.</p>
+      <div class="share-empty-state">
+        <strong>Noch keine Firmen vorhanden.</strong>
+        <span>Die geteilte Liste enthält derzeit keine Einträge.</span>
+      </div>
       {% endif %}
     </div>
   </section>
@@ -102,7 +125,7 @@
       const noResults = document.getElementById('share-no-results');
       const tbody = table.querySelector('tbody');
       const rows = Array.from(tbody.querySelectorAll('[data-company-row]'));
-      let sortKey = 'name';
+      let sortKey = 'city';
       let sortDirection = 'asc';
 
       const updateSortIndicators = () => {
