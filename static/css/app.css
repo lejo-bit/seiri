@@ -15,6 +15,18 @@
   --seiri-accent:        #7aa2f7;   /* accent colour           */
   --seiri-accent-strong: #93b4ff;   /* accent on hover         */
   --seiri-on-accent:     #0e1420;   /* text on accent          */
+  --seiri-success-bg:    #16271f;
+  --seiri-success-border:#2c4a3b;
+  --seiri-success-text:  #bce8cf;
+  --seiri-danger-bg:     #311d22;
+  --seiri-danger-border: #5c333e;
+  --seiri-danger-text:   #ffc7cd;
+  --seiri-info-bg:       #17233a;
+  --seiri-info-border:   #2c4167;
+  --seiri-info-text:     #c7d8ff;
+  --seiri-warning-bg:    #332a12;
+  --seiri-warning-border:#6b5826;
+  --seiri-warning-text:  #ffe3a1;
 }
 
 /* ---------- Page background & text ---------- */
@@ -187,19 +199,19 @@ a:hover {
 
 /* ---------- Notifications (flash) ---------- */
 .notification.is-success {
-  background-color: #16271f;
-  border: 1px solid #2c4a3b;
-  color: var(--seiri-text);
+  background-color: var(--seiri-success-bg);
+  border: 1px solid var(--seiri-success-border);
+  color: var(--seiri-success-text);
 }
 .notification.is-danger {
-  background-color: #311d22;
-  border: 1px solid #5c333e;
-  color: var(--seiri-text);
+  background-color: var(--seiri-danger-bg);
+  border: 1px solid var(--seiri-danger-border);
+  color: var(--seiri-danger-text);
 }
 .notification.is-info {
-  background-color: #17233a;
-  border: 1px solid #2c4167;
-  color: var(--seiri-text);
+  background-color: var(--seiri-info-bg);
+  border: 1px solid var(--seiri-info-border);
+  color: var(--seiri-info-text);
 }
 .notification .delete {
   background-color: rgba(255, 255, 255, 0.35);
@@ -211,9 +223,9 @@ a:hover {
 
 /* ---------- Warning notification ---------- */
 .notification.is-warning {
-  background-color: #332a12;
-  border: 1px solid #6b5826;
-  color: var(--seiri-text);
+  background-color: var(--seiri-warning-bg);
+  border: 1px solid var(--seiri-warning-border);
+  color: var(--seiri-warning-text);
 }
 
 /* ---------- Status tags ---------- */
@@ -245,6 +257,128 @@ a:hover {
 /* ---------- No-wrap (dates / action buttons) ---------- */
 .nowrap {
   white-space: nowrap;
+}
+
+/* ---------- Selectable application designs ---------- */
+body.theme-light {
+  --seiri-bg: #f4f6f9;
+  --seiri-panel: #ffffff;
+  --seiri-success-bg:    #e8f7ed;
+  --seiri-success-border:#9bd3aa;
+  --seiri-success-text:  #185c2b;
+  --seiri-danger-bg:     #fdebed;
+  --seiri-danger-border: #e5a4ad;
+  --seiri-danger-text:   #8d1f2d;
+  --seiri-info-bg:       #e8f1ff;
+  --seiri-info-border:   #9dbcf0;
+  --seiri-info-text:     #17427d;
+  --seiri-warning-bg:    #fff7df;
+  --seiri-warning-border:#e4c66e;
+  --seiri-warning-text:  #6b4d00;
+  --seiri-panel-2: #edf1f6;
+  --seiri-hover: #e5ebf3;
+  --seiri-border: #c9d2df;
+  --seiri-text: #202938;
+  --seiri-text-dim: #5d6878;
+  --seiri-accent: #2563eb;
+  --seiri-accent-strong: #1d4ed8;
+  --seiri-on-accent: #ffffff;
+}
+
+body.theme-light .box {
+  box-shadow: 0 4px 18px rgba(31, 41, 55, 0.08);
+}
+
+body.theme-light .hero.is-primary {
+  background-color: #e4edff;
+  background-image: linear-gradient(135deg, #ffffff, #dbe8ff);
+  color: #202938;
+}
+
+body.theme-light .hero.is-primary .title {
+  color: #172554;
+}
+
+body.theme-light .hero.is-primary .subtitle {
+  color: #405577;
+}
+
+body.theme-contrast {
+  --seiri-bg: #000000;
+  --seiri-panel: #111111;
+  --seiri-panel-2: #252525;
+  --seiri-hover: #333333;
+  --seiri-border: #ffffff;
+  --seiri-text: #ffffff;
+  --seiri-text-dim: #ffffff;
+  --seiri-accent: #00ffff;
+  --seiri-success-bg:    #003d1d;
+  --seiri-success-border:#00ff66;
+  --seiri-success-text:  #ffffff;
+  --seiri-danger-bg:     #4d0000;
+  --seiri-danger-border: #ff3333;
+  --seiri-danger-text:   #ffffff;
+  --seiri-info-bg:       #002d4d;
+  --seiri-info-border:   #00ffff;
+  --seiri-info-text:     #ffffff;
+  --seiri-warning-bg:    #4d3900;
+  --seiri-warning-border:#ffff00;
+  --seiri-warning-text:  #ffffff;
+  --seiri-accent-strong: #ffff00;
+  --seiri-on-accent: #000000;
+}
+
+body.theme-contrast .input,
+body.theme-contrast .textarea,
+body.theme-contrast .select select {
+  border: 2px solid #ffffff !important;
+}
+
+body.theme-contrast .hero.is-primary {
+  background-color: #000000;
+  background-image: linear-gradient(135deg, #000000, #202020);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+body.theme-contrast .hero.is-primary .title,
+body.theme-contrast .hero.is-primary .subtitle {
+  color: #ffffff;
+}
+
+body.theme-fancy {
+  --seiri-bg: #171329;
+  --seiri-panel: #241d42;
+  --seiri-panel-2: #33265a;
+  --seiri-hover: #40316d;
+  --seiri-border: #7658b8;
+  --seiri-text: #f8f5ff;
+  --seiri-text-dim: #c7bfe4;
+  --seiri-accent: #ff8ac6;
+  --seiri-accent-strong: #ffd166;
+  --seiri-on-accent: #24142f;
+  --seiri-success-bg:    #183d39;
+  --seiri-success-border:#55d6be;
+  --seiri-success-text:  #d4fff7;
+  --seiri-danger-bg:     #4b2342;
+  --seiri-danger-border: #ff8ac6;
+  --seiri-danger-text:   #ffe0f1;
+  --seiri-info-bg:       #292b57;
+  --seiri-info-border:   #9b8cff;
+  --seiri-info-text:     #e6e1ff;
+  --seiri-warning-bg:    #49351d;
+  --seiri-warning-border:#ffd166;
+  --seiri-warning-text:  #fff0c2;
+}
+
+body.theme-fancy {
+  background-image: radial-gradient(circle at top right, rgba(255, 138, 198, 0.18), transparent 34rem),
+                    linear-gradient(135deg, #171329, #20183b 55%, #321b43);
+}
+
+body.theme-fancy .navbar.is-primary,
+body.theme-fancy .hero.is-primary {
+  background-image: linear-gradient(135deg, #32205e, #6b2c5d);
 }
 
 /* ---------- Shared company list ---------- */

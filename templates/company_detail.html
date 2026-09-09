@@ -297,7 +297,7 @@
 
 <p class="has-text-grey-lighter is-size-7 mt-3">
   Letzte Änderung:
-  {{ company.updated_at.strftime('%d.%m.%Y %H:%M') if company.updated_at else '—' }}
+  {{ (company.updated_at|berlin_time).strftime('%d.%m.%Y %H:%M') if company.updated_at else '—' }}
 </p>
 
 <script>

@@ -31,6 +31,7 @@ from models import (
     RECRUITMENT_DEFAULT,
     RECRUITMENT_LABELS,
     Company,
+    BERLIN_TZ,
     JobLink,
     JobSite,
     Profile,
@@ -132,6 +133,9 @@ def _get_settings():
         # schema update; keep Google search enabled unless explicitly disabled.
         settings.google_search_enabled = True
         db.session.commit()
+    elif settings.design not in {"dark", "light", "contrast", "fancy"}:
+        settings.design = "dark"
+        db.session.commit()
     return settings
 
 
@@ -213,7 +217,7 @@ def index():
         "updated": Company.updated_at,
         "recruitment": Company.recruitment,
     }
-    query = Company.query.outerjoin(Status, Company.status_id == Status.id)
+    query = Company.query.options(selectinload(Company.job_links)).outerjoin(Status, Company.status_id == Status.id)
     if q:
         query = query.filter(Company.name.ilike(f"%{q}%"))
     column = order_cols[sort]
@@ -521,6 +525,11 @@ def admin():
             settings.google_search_enabled = request.form.get("google_search_enabled") is not None
             db.session.commit()
             flash("Google-Firmensuche-Einstellungen gespeichert.", "success")
+        elif action == "save_design":
+            design = request.form.get("design", "dark")
+            settings.design = design if design in {"dark", "light", "contrast", "fancy"} else "dark"
+            db.session.commit()
+            flash("Design gespeichert.", "success")
         elif action == "regenerate_token":
             settings.share_token = secrets.token_hex(16)
             db.session.commit()
@@ -638,7 +647,7 @@ def company_pdf(company_id):
     pdf.ln(8)
 
     # --- date / place (above the title) + title ---
-    today = datetime.date.today().strftime("%d.%m.%Y")
+    today = datetime.datetime.now(BERLIN_TZ).date().strftime("%d.%m.%Y")
     dateline = f"{profile_data.city}, {today}" if profile_data.city else today
     pdf.set_font("inter", "", 10)
     pdf.cell(0, 6, dateline, new_x="LMARGIN", new_y="NEXT", align="R")

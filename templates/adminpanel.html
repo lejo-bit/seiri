@@ -34,8 +34,8 @@
   <ul>
     <li class="is-active"><a href="#" data-tab="status">Status</a></li>
     <li><a href="#" data-tab="profil">Profil</a></li>
-    <li><a href="#" data-tab="passwort">Passwort</a></li>
     <li><a href="#" data-tab="teilen">Teilen</a></li>
+    <li><a href="#" data-tab="admin">Admin</a></li>
   </ul>
 </div>
 
@@ -169,42 +169,31 @@
                     onclick="return confirm('Anschreiben-Muster auf ALLE Firmen anwenden? Bestehende Anschreiben werden überschrieben.');">Auf alle Firmen anwenden</button>
           </div>
         </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="admin-panel is-hidden mt-4" id="passwort" data-tab="passwort">
-  <div class="columns is-centered">
-    <div class="column is-half">
-      <div class="box">
-        <h2 class="title is-5">Passwort-Schutz</h2>
-        <p class="subtitle">Wenn das Passwort erforderlich ist, muss es gesetzt sein und der Zugang
-        zum Admin-Bereich erfolgt nur nach Eingabe des Passworts (gehasht gespeichert).</p>
+        <hr>
+        <h3 class="title is-6">Passwort-Schutz</h3>
+        <p class="help mb-3">Schützt den Admin-Bereich mit einem gehasht gespeicherten Passwort.</p>
         <form method="post" action="{{ url_for('admin') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="save_password">
           <div class="field">
             <label class="checkbox">
-              <input type="checkbox" name="password_required"
-                     {{ 'checked' if settings.password_required }}>
+              <input type="checkbox" name="password_required" {{ 'checked' if settings.password_required }}>
               Passwort erforderlich
             </label>
           </div>
           <div class="field">
-            <label class="label" for="password">Neues Passwort</label>
+            <label class="label" for="profile_password">Neues Passwort</label>
             <div class="control">
-              <input class="input" id="password" name="password" type="password"
-                     placeholder="Mindestens 12 Zeichen">
+              <input class="input" id="profile_password" name="password" type="password" placeholder="Mindestens 12 Zeichen">
             </div>
           </div>
           <div class="field">
-            <label class="label" for="password_confirm">Passwort wiederholen</label>
+            <label class="label" for="profile_password_confirm">Passwort wiederholen</label>
             <div class="control">
-              <input class="input" id="password_confirm" name="password_confirm" type="password">
+              <input class="input" id="profile_password_confirm" name="password_confirm" type="password">
             </div>
           </div>
-          <button class="button is-primary" type="submit">Einstellungen speichern</button>
+          <button class="button is-primary" type="submit">Passwort speichern</button>
         </form>
       </div>
     </div>
@@ -232,21 +221,6 @@
           <button class="button is-primary" type="submit">Einstellungen speichern</button>
         </form>
 
-        <hr>
-        <form method="post" action="{{ url_for('admin') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="action" value="save_google_search">
-          <div class="field">
-            <label class="checkbox">
-              <input type="checkbox" name="google_search_enabled"
-                     {{ 'checked' if settings.google_search_enabled }}>
-              Google-Firmensuche aktivieren
-            </label>
-          </div>
-          <p class="help mb-3">Wenn deaktiviert, wird die Google-Suche beim Hinzufügen einer Firma ausgeblendet.</p>
-          <button class="button is-primary" type="submit">Google-Suche speichern</button>
-        </form>
-
         {% if settings.share_enabled and settings.share_token %}
         <hr>
         <div class="field">
@@ -268,6 +242,45 @@
         <p class="has-text-grey-lighter is-size-7">Der Link ist nicht passwortgeschützt.
         Jeder, der den Link hat, sieht die Liste.</p>
         {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-panel is-hidden mt-4" id="admin" data-tab="admin">
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="box">
+        <h2 class="title is-5">Admin-Einstellungen</h2>
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="save_google_search">
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" name="google_search_enabled" {{ 'checked' if settings.google_search_enabled }}>
+              Google-Firmensuche aktivieren
+            </label>
+          </div>
+          <p class="help mb-3">Wenn deaktiviert, wird die Google-Suche beim Hinzufügen einer Firma ausgeblendet.</p>
+          <button class="button is-primary" type="submit">Google-Suche speichern</button>
+        </form>
+        <hr>
+        <form method="post" action="{{ url_for('admin') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="save_design">
+          <div class="field">
+            <label class="label" for="design">Design</label>
+            <div class="select is-fullwidth">
+              <select id="design" name="design">
+                <option value="dark" {{ 'selected' if settings.design == 'dark' }}>Dunkel</option>
+                <option value="light" {{ 'selected' if settings.design == 'light' }}>Hell</option>
+                <option value="contrast" {{ 'selected' if settings.design == 'contrast' }}>Hoher Kontrast</option>
+                <option value="fancy" {{ 'selected' if settings.design == 'fancy' }}>Fancy</option>
+              </select>
+            </div>
+          </div>
+          <button class="button is-primary" type="submit">Design speichern</button>
+        </form>
       </div>
     </div>
   </div>

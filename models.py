@@ -1,14 +1,26 @@
 """Database models for the SEIRI – Praktikum application."""
 import datetime
+from zoneinfo import ZoneInfo
 
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+BERLIN_TZ = ZoneInfo("Europe/Berlin")
+
 
 def _utcnow():
     """Current UTC time (naive) — compatible across Python versions."""
     return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
+def berlin_time(value):
+    """Convert a stored UTC timestamp to Europe/Berlin for display."""
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=datetime.timezone.utc)
+    return value.astimezone(BERLIN_TZ)
 
 
 # Fixed recruitment states: "is the company looking for a trainee/praktikum?"
@@ -135,5 +147,6 @@ class Settings(db.Model):
     share_enabled = db.Column(db.Boolean, nullable=False, default=False)
     share_token = db.Column(db.String(64))
     google_search_enabled = db.Column(db.Boolean, nullable=False, default=True)
+    design = db.Column(db.String(20), nullable=False, default="dark")
 
 

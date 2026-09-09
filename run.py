@@ -10,7 +10,7 @@ from flask import Flask, flash, redirect, request, url_for
 from flask_wtf.csrf import CSRFError, CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from models import db
+from models import Settings, berlin_time, db
 from routes import limiter, register_routes
 from startdb import ensure_schema
 
@@ -107,6 +107,13 @@ def create_app(test_config=None):
         return response
 
     db.init_app(app)
+    app.template_filter("berlin_time")(berlin_time)
+
+    @app.context_processor
+    def inject_app_settings():
+        settings = db.session.get(Settings, 1)
+        return {"app_design": settings.design if settings and settings.design else "dark"}
+
     register_routes(app)
     return app
 

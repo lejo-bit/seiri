@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="theme-{{ app_design|default('dark') }}">
   <nav class="navbar is-primary" role="navigation" aria-label="Hauptnavigation">
     <div class="navbar-brand">
       <a class="navbar-item has-text-weight-bold" href="{{ url_for('index') }}">SEIRI</a>

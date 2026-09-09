@@ -53,6 +53,11 @@ def ensure_schema(app):
                                 "ALTER TABLE settings ADD COLUMN "
                                 "google_search_enabled BOOLEAN NOT NULL DEFAULT 1"
                             )
+                        elif table.name == "settings" and column.name == "design":
+                            statement = (
+                                "ALTER TABLE settings ADD COLUMN "
+                                "design VARCHAR(20) NOT NULL DEFAULT 'dark'"
+                            )
                         else:
                             statement = (
                                 f"ALTER TABLE {table.name} ADD COLUMN "
